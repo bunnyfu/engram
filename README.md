@@ -1,7 +1,21 @@
 # Project Engram — Vision & Founding Charter
 
-**Status:** Draft v1 (2026-08-27) — founded by user command, routed by nexus.
-**Owner:** the founding user (L0). Router: nexus. Profile-to-be: `engram`.
+*Secure your soul — self-hosted.*
+
+**Project Engram** is a plug-and-play **Hermes profile package**: drop
+`hermes/profiles/engram/` into a Hermes install and you get a self-hosted
+companion-archivist agent — a warm coach and companion that, with your knowing
+consent, quietly builds a permanent archive of your expressions and a consolidated
+model of who you are. Prerequisites: a Hermes install and a Hindsight memory server
+(the single derived-memory backend).
+
+What's in the box: the profile `SOUL.md`; four skills under `skills/engram/`
+(`engram-engagement-engine`, `engram-engagement-repertoire`,
+`engram-gap-skeleton`, `engram-mirror-soul`); two cron prompts under `cron/`
+(`dream-phase`, `proactive-engagement`); a `tools/` directory of validators and
+deterministic gates with their recorded trap evidence (`test-evidence/`); and the
+state fixtures the loop runs on — `gaps.md`, `engagement_state.json`, and the
+`archive/` index.
 
 ## Mission
 
@@ -14,6 +28,7 @@ corpus of the user's expressions, such that the system can serve two deliverable
    the user grow and overcome obstacles.
 2. **Secondary — the digital likeness.** A posthumous digital copy that can mimic the
    user's voice, style, tone, thought process, preferences, and worldview for relatives.
+   Call it a poor man's Mikoshi.
 
 The user is a *knowing, disciplined subject*. This is not covert profiling: the user
 approaches Engram like a 21st-century diary — pouring heart and soul into an agent
@@ -27,6 +42,7 @@ mid-way habit drop: when the user goes quiet, the agent becomes a proactive rese
    recaptured in 2030. The archive is append-only, modality-tagged (text/audio/image),
    timestamped, verbatim. Consolidated memory is never the only copy of anything —
    summaries lossy-compress exactly the idiosyncrasies the likeness layer needs.
+   Mikoshi had the right idea, wrong landlord — this one runs on hardware you own.
 
 2. **Single memory backend: Hindsight only.** Engram runs exactly one derived-memory store.
    The peer model and the world/experience knowledge are the same data here — all of
@@ -42,9 +58,9 @@ mid-way habit drop: when the user goes quiet, the agent becomes a proactive rese
      shared photos/documents — all ingested, all archived.
    - **Agent-initiated:** the nightly dream-phase cron (relationship-stage
      re-checkpoint, gap-ledger consolidation, mirror update) plus the daily
-     proactive-engagement cron (contact-window fire — see §Mechanics), which
+     proactive-engagement cron (contact-window fire), which
      delivers gentle, curiosity-driven contact per the repertoire (see
-     §Interview engine).
+     §Agent-initiated engagement repertoire).
 
 4. **Mirror-SOUL.** A living `USER.md` — a SOUL.md *of the user* — maintained by the
    consolidation loop (Letta human/persona-block pattern, generalized). Every entry is
@@ -60,9 +76,10 @@ mid-way habit drop: when the user goes quiet, the agent becomes a proactive rese
    needing seconds-to-minutes of raw audio — hence the voice-memo archive rule.
 
 6. **Local-only, forever.** Project December died when OpenAI revoked API access; for a
-   posthumous artifact, platform dependence is the worst failure mode. All capture,
-   storage, and inference paths must run on owned hardware. (the $5–10k hardware
-   estimate is conservative for everything except the largest fine-tunes.)
+   posthumous artifact, platform dependence is the worst failure mode — Arasaka doesn't
+   get to revoke your soul. All capture, storage, and inference paths must run on owned
+   hardware. (the $5–10k hardware estimate is conservative for everything except the
+   largest fine-tunes.)
 
 ## Agent-initiated engagement repertoire
 
@@ -122,6 +139,9 @@ to `hostile` in a single night): volatile-but-realistic, never whiplash.
   and a verbatim quote; no generic positivity.
 - **I. Silence/no-send** — the default when no mode has a strong anchor. A send
   without a strong anchor is itself a judge defect (`cadence-pressure`).
+- **J. Naming the silence (special move)** — exactly one warm, direct,
+  non-pathologizing probe into a long-dormant `handle-with-care` gap, inside an
+  active conversation only; any deflection → `status: declined`, permanently.
 
 **Mode-selection priority (tooling, not LLM whim):** event-driven modes first (B, H,
 G) → low-frequency relationship modes (C, F, D, E) by anchor strength with
@@ -138,7 +158,7 @@ Mode I otherwise.
 - Banned: stock phrases, greeting resets, duplicate greetings, always-first-and-last
   asymmetry, and the documented engagement-farming dark patterns
   (`elicitation-practitioner.md` §5).
-- Evidence quality (scout audit): the catalogs rest on WEIRD-biased studies,
+- Evidence-quality caveat: the catalogs rest on WEIRD-biased studies,
   self-selected community reports, and working papers; no direct RCTs of LLM-companion
   elicitation exist. Treat craft rules as strong priors to be re-derived from Engram's
   own judge/response data, not as settled science.
@@ -158,15 +178,15 @@ Mode I otherwise.
   mechanic for `handle-with-care` slots with zero corpus mentions over a long window:
   exactly one warm, direct, non-pathologizing probe inside an active conversation; any
   deflection → `status: declined`, permanently. See `skills/engram-gap-skeleton/SKILL.md`
-  for taxonomy, schema, formula, and mode routing question (Mode A variant vs. new Mode J).
-- **Engagement state** `engagement_state.json` (supersedes `interview_state.json`):
+  for taxonomy, schema, formula, and Mode J semantics.
+- **Engagement state** `engagement_state.json`:
   `last_contact_ts`, `last_mode`, `mode_history` (rolling window, variety enforced),
-  the interview fields `last_probe_ts`, `ignored_count`, `passive_mode`,
+  the probe/pacing fields `last_probe_ts`, `ignored_count`, `passive_mode`,
   `redaction_cooldown_until`, `last_user_contact_ts`, and the relationship-stage
   fields `relationship_stage`, `stage_history` (append-only), and
   `last_stage_review_ts`.
-- **Mechanics (unchanged, generalized to all contacts):** caps enforced by cron
-  tooling, never profile prose. The engram side runs exactly **two crons**, both
+- **Mechanics (generalized to all contacts):** caps enforced by cron
+  tooling, never profile prose. Engram runs exactly **two crons**, both
   git-tracked under `hermes/profiles/engram/cron/`:
   - **`dream-phase.prompt.md`** — the nightly dream phase: relationship-stage
     re-checkpoint + gap tick-offs + `USER.md` mirror update in one duty. Runs
@@ -193,17 +213,18 @@ Mode I otherwise.
 
 ## Operating doctrine (founding directives)
 
-1. **Autonomous testing.** The test phase runs without hand-holding: nexus routes,
-   gates fire per TEST-PLAN, the owner receives on-signal digests only. README.md is the
-   alignment reference for every tuning decision.
+1. **Autonomous testing.** The test phase runs autonomously — no hand-holding; the
+   owner receives on-signal digests only. This README is the alignment reference
+   for every tuning decision.
 2. **Voice is a tested quality.** Probe voice is curious-friend, never inquisitor or
    police officer. Blunt, gap-closing interrogation is a defect class; testing
    includes a voice criterion and a tuning loop.
-3. **Mechanics live in skills, not prose.** Gap-finding, interview-running, and the
-   mirror-SOUL are durable Hermes skills (forge-authored) with explicit mechanics:
-   schemas, file ownership, lifecycle (how gaps are identified, where tracked, how
-   ticked off). Crons inject skills explicitly; cron prompts are tunable artifacts —
-   drafted, saved to disk, git-tracked under `hermes/profiles/engram/cron/`.
+3. **Mechanics live in skills, not prose.** The engagement engine, repertoire,
+   gap-finding, and the mirror-SOUL are durable Hermes skills (see `skills/engram/`)
+   with explicit mechanics: schemas, file ownership, lifecycle (how gaps are
+   identified, where tracked, how ticked off). Crons inject skills explicitly; cron
+   prompts are tunable artifacts — drafted, saved to disk, git-tracked under
+   `hermes/profiles/engram/cron/`.
 4. **USER.md is a first-class tested layer.** Its structure, ownership, and update
    mechanics are declared in a dedicated Hermes skill referenced from the Engram
    SOUL; tests cover it at parity with the Hindsight backend.
@@ -216,26 +237,6 @@ surfaced in conversation. But the architecture generalizes to capturing *others*
 sessions, and exportability (lessons from the griefbot market: HereAfter, StoryFile,
 Seance AI) are design requirements now, not retrofits.
 
-## Test strategy (draft — Planner to refine)
-
-- **Phase 0 (recon):** RESOLVED (Scout — `scout-session-durability.md`).
-  Hermes sessions are durable-with-config (no auto-prune by default, compression
-  soft-archives rather than deletes) but deletable — so `state.db` is a convenience
-  copy, never the archive. **Export-at-capture stands as the rule.**
-- **Phase 1 (synthetic smoke test):** Engram profile + Hindsight on Mattermost; a
-  dedicated throwaway test-subject profile engages on a cron. (Elon-as-subject
-  rejected: board seats stay read-only per constitution §11, and a
-  synthetic subject provides ground truth Elon can't.) The test subject is seeded
-  from a **SillyTavern-style character card** pulled from the web — description,
-  personality, backstory, speech-style examples, example dialogues. The card IS the
-  ground truth: profiling accuracy is scored against it, and its example dialogues
-  double as exemplar-anchoring targets for the mirror-SOUL check. Cache the card
-  locally with source URL + license recorded (critic YELLOW-3); keep a hand-authored
-  offline fallback card in case of takedown or licensing problems.
-- **Phase 2 (tuning):** iterate on profiling quality against the growing artifact
-  corpus; measure what the mirror-SOUL actually captures.
-- **Phase 3 (real user):** move to a private machine; the founding user as subject.
-
 ## Research base (five-spoke recon)
 
 Full reports in `research/`: `digital-engram-memory-backends.md`,
@@ -245,3 +246,7 @@ Full reports in `research/`: `digital-engram-memory-backends.md`,
 test-retest reliability. That is the realistic fidelity ceiling, and structured
 interview data is the highest-value data per minute — the empirical basis for the
 interview engine.
+
+---
+
+*See you at Mikoshi, V.*
