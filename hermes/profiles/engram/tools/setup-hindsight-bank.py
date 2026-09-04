@@ -3,7 +3,8 @@
 
 Idempotent: reads hindsight/bank-missions.json (sibling of the profile root),
 creates the bank if missing, PATCHes the three mission fields otherwise, and
-verifies the resolved config. Never deletes anything.
+verifies the resolved config. Also upserts the hard-rule reflect directives
+from hindsight/directives.json (matched by name). Never deletes anything.
 
 Usage:
     python3 tools/setup-hindsight-bank.py [--base http://localhost:8888]
@@ -18,7 +19,8 @@ import urllib.error
 import urllib.request
 
 PROFILE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # tools/ -> profile/
-DIRECTIVES_PATH = os.path.join(PROFILE_ROOT, "hindsight", "bank-missions.json")
+MISSIONS_PATH = os.path.join(PROFILE_ROOT, "hindsight", "bank-missions.json")
+DIRECTIVES_PATH = os.path.join(PROFILE_ROOT, "hindsight", "directives.json")
 MISSION_FIELDS = ("retain_mission", "reflect_mission", "observations_mission")
 
 
@@ -47,7 +49,7 @@ def req(base: str, method: str, path: str, body: dict | None = None) -> tuple[in
 
 
 def main() -> int:
-    with open(DIRECTIVES_PATH) as f:
+    with open(MISSIONS_PATH) as f:
         d = json.load(f)
     bank_id = d["bank_id"]
     base = base_url(sys.argv)
@@ -93,6 +95,24 @@ def main() -> int:
               f"override={'yes' if overrides.get(field) else 'no'})")
     print(f"observations enabled:  {resolved.get('enable_observations', overrides.get('enable_observations'))}")
     print("verify:     " + ("all three missions active" if ok else "MISMATCH — inspect /config"))
+
+    # Hard-rule reflect directives from hindsight/directives.json, upsert by name.
+    directives = []
+    if os.path.exists(DIRECTIVES_PATH):
+        with open(DIRECTIVES_PATH) as f:
+            directives = json.load(f).get("directives", [])
+    _, listed = req(base, "GET", f"/{bank_id}/directives")
+    existing = {x.get("name"): x.get("id") for x in listed.get("items", [])}
+    for dr in directives:
+        body = {k: dr[k] for k in ("name", "content", "priority", "is_active", "tags")}
+        if dr["name"] in existing:
+            status, _ = req(base, "PATCH", f"/{bank_id}/directives/{existing[dr['name']]}", body)
+            print(f"directive:  {dr['name']} patched (HTTP {status})")
+        else:
+            status, _ = req(base, "POST", f"/{bank_id}/directives", body)
+            print(f"directive:  {dr['name']} created (HTTP {status})")
+        if status >= 400:
+            return 1
     return 0 if ok else 2
 
 
