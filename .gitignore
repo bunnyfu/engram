@@ -1,0 +1,25 @@
+# Secrets — never commit these
+*master*
+*unlock*
+fleet-master.txt
+fleet-unlock.rtf
+*.key
+*.pem
+*.age
+.env
+.env.*
+!.env.example
+*.enc.yaml
+*.enc.yml
+
+# OS junk
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Runtime state (pi/hindsight tooling)
+.pi/
+
+# Local backups (hindsight bank dumps — memory data, keep off GitHub)
+backups/
