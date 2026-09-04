@@ -6,6 +6,9 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 SKILL_ROOT = ROOT / "skills" / "engram"
 CRON_DIR = ROOT / "cron"
 
+# The folded cron set (2026-09-04): exactly two prompts.
+EXPECTED_PROMPTS = {"dream-phase.prompt.md", "proactive-engagement.prompt.md"}
+
 
 def main() -> int:
     skill_names = {p.parent.name for p in SKILL_ROOT.glob("*/SKILL.md")}
@@ -13,6 +16,13 @@ def main() -> int:
     skill_names |= {"fleet-governance", "fleet-collaboration"}
     errors = []
     passed = []
+    found = {p.name for p in CRON_DIR.glob("*.prompt.md")}
+    missing = EXPECTED_PROMPTS - found
+    extra = found - EXPECTED_PROMPTS
+    if missing:
+        errors.append((", ".join(sorted(missing)), "expected prompt missing from cron/ (folded set: dream-phase + proactive-engagement)"))
+    if extra:
+        errors.append((", ".join(sorted(extra)), "unexpected prompt in cron/ (folded set is exactly two prompts)"))
     for prompt_file in sorted(CRON_DIR.glob("*.prompt.md")):
         content = prompt_file.read_text()
         if not content.strip():

@@ -1,9 +1,18 @@
 #!/usr/bin/env python3
-"""Director: engram conversation-handler cron.
+"""Director: engram conversation-handler cron — ABSORBED 2026-09-04.
 
-Pure deterministic pre-run. Checks whether an active, non-cooling session has an
-unanswered subject artifact. If yes, triggers the conversation-handler actuator.
-Idle ticks consume zero LLM tokens.
+The cron fold (6 prompts -> 2) dissolved the conversation-handler cron:
+mid-session reply routing is in-session behavior owned by the SOUL plus the
+engram-engagement-engine / engram-engagement-repertoire skills (engine skill,
+"Session conversation routing" section) — no cron fires for it. This file is
+retained as the reference for the deterministic reply-routing checks (cooling
+lock, unanswered subject artifact, already-replied). The throwaway-round
+(2026-08-28) actuator job ID/name below is historical; rebind or delete at
+install.
+
+Pure deterministic pre-run. Checks whether an active, non-cooling session has
+an unanswered subject artifact. If yes, triggers the conversation-handler
+actuator. Idle ticks consume zero LLM tokens.
 """
 
 from __future__ import annotations

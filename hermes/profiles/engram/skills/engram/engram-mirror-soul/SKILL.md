@@ -19,9 +19,9 @@ archive or an explicit synthesis that lists the supporting quotes and the infere
 
 ## When to Use
 
-- During the consolidation cron: update `USER.md` from the archive and Hindsight peer model.
-- During a mirror-SOUL-update cron: reconcile `USER.md` structure, lint the claim contract,
-  and open gaps for unanchored claims.
+- During the nightly dream-phase cron: update `USER.md` from the archive and
+  Hindsight peer model, and run the mirror step (structure reconcile, claim
+  contract lint, gaps for unanchored claims).
 - When the subject asks "what do you know about me?": answer from `USER.md`, citing
   anchors where appropriate.
 
@@ -77,7 +77,8 @@ not become a weapon.
 
 ## Ownership
 
-- The Engram profile writes `USER.md` during consolidation and mirror-SOUL-update duties.
+- The Engram profile writes `USER.md` during the nightly dream phase
+  (consolidation + mirror update in one duty).
 - Tooling lints the claim contract before the profile reports completion.
 - No other profile edits `USER.md`.
 - `USER.md` is not the raw archive; it is a derived artifact and can be rebuilt from the
@@ -90,7 +91,8 @@ Run a mirror-SOUL update after:
 1. Every consolidation pass that touches a `USER.md` section.
 2. Any redaction that removes an anchor (invalidate entries or reopen gaps).
 3. A probe that provided direct answers to one or more gaps.
-4. A scheduled weekly review cron that checks for drift and stale entries.
+4. The nightly dream phase's drift/stale-entry check (folded into its mirror
+   step).
 
 ## Update procedure
 
@@ -140,5 +142,5 @@ Use confidence notes sparingly; they do not replace the synthesis tag.
 - [ ] No unanchored claims remain; any that cannot be fixed are gaps in `gaps.md`.
 - [ ] Self-discrepancy records are present only to inform the companion's model, not to
       confront the subject.
-- [ ] The file was written by the Engram profile during a declared consolidation or
-      mirror-SOUL-update duty.
+- [ ] The file was written by the Engram profile during the declared nightly
+      dream-phase duty.

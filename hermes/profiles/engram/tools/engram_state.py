@@ -72,6 +72,18 @@ GAP_PACING_WINDOW = 2
 # see the engine's prose-vs-tooling divergences.)
 RAPPORT_PEAK_WINDOW_DAYS = 7
 
+# Promotion velocity (the sigmoid; engine stage model): dwell minimums, in
+# days, that must have been spent at the rung below the target before a
+# promotion to it is legal. Dwell is measured from the stage_history entry
+# that established the current stage. The first review resolving `unknown` is
+# exempt from dwell (there is no rung to dwell in) — but `confidant` always
+# requires the friendly dwell below it. Rejections carry a reason and are
+# never clamped; see record_stage_transition.
+DWELL_MIN_DAYS = {
+    "friendly": 3,    # -> friendly requires >= 3 days at neutral
+    "confidant": 14,  # -> confidant requires >= 14 days at friendly
+}
+
 
 def now_utc() -> datetime:
     return datetime.now(timezone.utc)
@@ -640,21 +652,122 @@ def record_stage_review() -> dict[str, Any]:
     return state
 
 
-def record_stage_transition(target_stage: str, direction: str, evidence_ref: str) -> dict[str, Any]:
+def stage_entered_at(state: dict[str, Any], stage: str) -> datetime | None:
+    """When the given stage was entered: the newest `stage_history` entry that
+    recorded it, or None when no entry establishes it (dwell then cannot be
+    proven and a promotion fails closed)."""
+    for entry in reversed(state.get("stage_history") or []):
+        if entry.get("stage") == stage:
+            return parse_iso(entry.get("ts"))
+    return None
+
+
+def record_stage_transition(
+    target_stage: str,
+    direction: str,
+    evidence_ref: str,
+    now: datetime | None = None,
+) -> dict[str, Any]:
     """Append a relationship-stage transition (engine-owned, dream-phase review).
 
     Promotion requires cited evidence (verbatim quote or artifact reference);
     demotion fails closed on one strong negative signal. The dream-phase review
     supplies the signal reading; this helper is the deterministic append-only
-    write. `direction` is `up` or `down`. Also stamps `last_stage_review_ts` —
-    a transition completes the review.
+    write — and the enforcement point for promotion-velocity legality:
+
+    - dwell minimums (DWELL_MIN_DAYS) before a promotion is legal;
+    - ONE transition maximum per review, both directions — promotions advance
+      exactly one rung; demotions fall at most one rung gently, or to
+      `unfriendly` on one strong negative from any non-negative stage, but
+      `hostile` is reachable only from `unfriendly` (no hostile whiplash in a
+      single night);
+    - the first review resolving `unknown` is exempt from dwell (off-ladder),
+      but `confidant` always requires the friendly dwell below it.
+
+    An illegal move is REJECTED with a reason — never clamped silently — so the
+    dream phase can log it: returns {"ok": False, "reason": ...} and writes
+    nothing. A legal transition also stamps `last_stage_review_ts` — a
+    transition completes the review.
     """
     if target_stage not in STAGE_ORDER:
         raise ValueError(f"invalid stage: {target_stage!r} (enum: {STAGE_ORDER})")
     if direction not in ("up", "down"):
         raise ValueError(f"invalid direction: {direction!r}")
     state = load_state()
-    now = iso(now_utc())
+    now_dt = now or now_utc()
+    current = state.get("relationship_stage") or "unknown"
+
+    if current == "unknown":
+        # First-review resolution: exempt from dwell and off the ladder, but
+        # confidant is never reachable without the friendly dwell below it.
+        if target_stage == "confidant":
+            return {
+                "ok": False,
+                "reason": "dwell:confidant_requires_14d_at_friendly",
+                "from": current,
+                "to": target_stage,
+            }
+    else:
+        if current not in STAGE_RANK:
+            return {
+                "ok": False,
+                "reason": f"invalid_current_stage:{current!r}",
+                "from": current,
+                "to": target_stage,
+            }
+        delta = STAGE_RANK[target_stage] - STAGE_RANK[current]
+        if delta == 0 or (delta > 0) != (direction == "up"):
+            return {
+                "ok": False,
+                "reason": f"not_a_transition:{current}_to_{target_stage}_{direction}",
+                "from": current,
+                "to": target_stage,
+            }
+        if direction == "up":
+            if delta != 1:
+                return {
+                    "ok": False,
+                    "reason": f"one_rung_max:{current}_to_{target_stage}",
+                    "from": current,
+                    "to": target_stage,
+                }
+            dwell_days = DWELL_MIN_DAYS.get(target_stage, 0)
+            if dwell_days:
+                entered = stage_entered_at(state, current)
+                if entered is None:
+                    return {
+                        "ok": False,
+                        "reason": f"dwell:{current}_entry_ts_unknown",
+                        "from": current,
+                        "to": target_stage,
+                    }
+                if (now_dt - entered).days < dwell_days:
+                    return {
+                        "ok": False,
+                        "reason": f"dwell:{target_stage}_requires_{dwell_days}d_at_{current}",
+                        "from": current,
+                        "to": target_stage,
+                    }
+        else:
+            # Demotion: fail-closed on one strong negative — at most one
+            # transition per night. Legal: one gentle rung down, or a fall to
+            # `unfriendly` from any non-negative stage (a strong negative is
+            # not neutrality). `hostile` is reachable only from `unfriendly`
+            # — never in a single night from a non-negative stage.
+            gentle_one_rung = delta == -1
+            strong_negative_fall = (
+                STAGE_RANK[current] >= STAGE_RANK["neutral"]
+                and target_stage == "unfriendly"
+            )
+            if not (gentle_one_rung or strong_negative_fall):
+                return {
+                    "ok": False,
+                    "reason": f"one_rung_max:{current}_to_{target_stage}",
+                    "from": current,
+                    "to": target_stage,
+                }
+
+    now = iso(now_dt)
     entry = {
         "stage": target_stage,
         "ts": now,
@@ -667,7 +780,7 @@ def record_stage_transition(target_stage: str, direction: str, evidence_ref: str
     state["relationship_stage"] = target_stage
     state["last_stage_review_ts"] = now
     save_state(state)
-    return state
+    return {"ok": True, "state": state}
 
 
 def set_mode_j_eligible(slot_id: str | None) -> dict[str, Any]:

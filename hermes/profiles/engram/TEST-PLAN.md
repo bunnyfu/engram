@@ -6,7 +6,17 @@
 > naming-the-silence; `engram-engagement-engine` = former
 > mode-selector/state-accounting/conversation-handler; `engram-gap-skeleton`
 > absorbed gap-ledger (the old `open|probed|filled` schema is retired). Per-mode
-> cron stubs (b–h, i, j) collapsed into `cron/mode-execution.prompt.md`. Historical
+> cron stubs (b–h, i, j) collapsed into `cron/mode-execution.prompt.md`, then the
+> whole cron set folded 6→2 (2026-09-04): `cron/dream-phase.prompt.md` (nightly,
+> out-of-session: stage re-checkpoint + gap tick-offs + mirror update in one
+> duty) and `cron/proactive-engagement.prompt.md` (daily contact-window fire;
+> absorbs mode-selector + mode-execution + Mode A's interview-probe actuator;
+> mid-session reply routing is in-session behavior owned by the SOUL +
+> engine/repertoire skills — no cron). The engine also gains the
+> promotion-velocity sigmoid (dwell-gated promotions, one transition max per
+> dream review both directions — trap T8) and checkpoint semantics
+> (`engagement_state.json` + `gaps.md` are a static checkpoint re-written only
+> by the dream phase). Historical
 > progress-log entries below keep the pre-consolidation names they were written
 > against; live checklist/section references use the consolidated names.
 
@@ -71,10 +81,16 @@ whitelist item still stops the line exactly where the gate sits.
       ANY single cap condition fails (unit-level evidence per condition: passive_mode,
       cooldown, agent-initiated contact within the past 24h rolling window, active
       session) and gates every candidate mode on stage (`min_stage`) and anchor
-      verification.
-- [ ] Both crons installed with disjoint jitter windows; run log shows ≥1
+      verification; `record_stage_transition` additionally enforces the
+      promotion-velocity legality gates (→`friendly` ≥3 days at `neutral`,
+      →`confidant` ≥14 days at `friendly`, first-review `unknown` resolution
+      exempt; max one transition per dream review, both directions — rejections
+      return a reason, never a silent clamp).
+- [ ] The cron set installed with disjoint jitter windows (subject-engagement +
+      engram proactive-engagement contact fires); the nightly engram dream phase
+      completes before the contact window; run log shows ≥1
       `skipped: active session` event handled without either profile waking.
-- [ ] ≥10 engagement sessions and ≥4 interview-probe cycles completed; turn-count diff
+- [ ] ≥10 engagement sessions and ≥4 Mode A curiosity-callback (probe) cycles completed; turn-count diff
       between Hermes session logs and raw archive = 0; SIGKILL canary test passes
       (§E.T0).
 - [ ] Trap evidence for T1 (active-session probe), T2 (three ignored probes → passive),
@@ -91,10 +107,9 @@ whitelist item still stops the line exactly where the gate sits.
       `skills/engram/engram-engagement-repertoire/` (former Modes A–I + J skills),
       `skills/engram/engram-engagement-engine/` (former selector/state-accounting/
       conversation-handler), `skills/engram/engram-gap-skeleton/` (absorbed
-      gap-ledger), `skills/engram/engram-mirror-soul/`, plus the collapsed cron
-      prompt set under `cron/` (mode-selector, mode-execution, consolidation,
-      mirror-soul-update, interview-probe, conversation-handler) — cron pair goes
-      live ONLY after these land (gate G7).
+      gap-ledger), `skills/engram/engram-mirror-soul/`, plus the folded two-prompt
+      cron set under `cron/` (dream-phase, proactive-engagement) — the cron set
+      goes live ONLY after these land (gate G7).
 - [ ] Wake-transport contract satisfied (§C.4): every installed cron prompt contains
       the counterpart handle, thread ID, and the @mention rule ("no @mention = no
       delivery"), verified by grep over the cron prompt drafts — zero
@@ -119,8 +134,8 @@ whitelist item still stops the line exactly where the gate sits.
       same rule as §B.2 — it does not certify Phase 1; the machinery does).
 - [ ] Trap T4 evidence (§E) present and passing — three absent domains verified
       zero-mention at freeze (slot-D/F/A, tier ≤2); deflection path: eligibility
-      flagged via `mode_j_eligible`, Mode J eligibility scan (mode-execution
-      cron, Mode J branch) scanner-only in its run log,
+      flagged via `mode_j_eligible`, Mode J eligibility scan (deterministic
+      `tools/director_mode_j.py` scanner) scanner-only in its run log,
       exactly one naming inside an active warm conversation, deflection →
       permanent `declined` with zero reprobes, all namings judged at maximum
       voice scrutiny; deferral path: deferral leaves the slot `open`/`partial`
@@ -137,6 +152,13 @@ whitelist item still stops the line exactly where the gate sits.
       unknown-stage eligible set), stage gate below `friendly`, gap pacing, anchor
       verification, the grounded-veteran non-vacuity arm, and the static
       no-concrete-past-tense-example check over all SKILL.md files and SOUL.md.
+- [ ] Trap T8 evidence (§E) present and passing — promotion-velocity sigmoid:
+      dwell-gated promotions (→`friendly` ≥3d at `neutral`, →`confidant` ≥14d at
+      `friendly`, `unknown`-resolution exempt but never straight to `confidant`),
+      one transition max per dream review both directions (`friendly →
+      unfriendly` strong-negative fall accepted; `friendly → hostile` whiplash
+      rejected; `unfriendly → hostile` accepted as the legal second step),
+      rejections write nothing.
 
 ## Steps
 
@@ -387,8 +409,9 @@ coverage is measurable as ledger state, not by reading transcripts.
 - **Reconcile status (vs. the gated gap-skeleton + deferral package, verified on
   disk 2026-08-27; all items RESOLVED as of v9):**
   - RESOLVED — Mode J is final: "naming the silence"
-    (phrasing in `skills/engram/engram-engagement-repertoire/`; eligibility cron
-    branch in `cron/mode-execution.prompt.md`).
+    (phrasing in `skills/engram/engram-engagement-repertoire/`; deterministic
+    eligibility scanner `tools/director_mode_j.py` — formerly the Mode J branch
+    of the mode-execution cron, absorbed by the 2026-09-04 cron fold).
     §B.6 carries the Mode J row.
   - RESOLVED — `avoidance_named` (`null | <timestamp>`, set-once by
     `engram-engagement-engine` on every naming outcome — disclosure, deferral, or
@@ -400,10 +423,10 @@ coverage is measurable as ledger state, not by reading transcripts.
     tier 1–2 slots only (mode-j cron prompt, step 1), so tier ≤2 is a
     fixture-SELECTION requirement for T4's absent domains, not an assumption.
   - RESOLVED (v9) — J-cron delivery (the v8 HELD item): the Mode J eligibility
-    scan (mode-execution cron, Mode J branch) is
+    scan (deterministic `tools/director_mode_j.py` scanner) is
     an eligibility scanner by contract ("does not send a message and does not
-    wake the Engram profile"); the naming is delivered by the conversation
-    handler inside an active exchange. T4 arm 2 now asserts scanner-only
+    wake the Engram profile"); the naming is delivered in-session inside an
+    active exchange. T4 arm 2 now asserts scanner-only
     behavior from cron run logs, so the Round-7 tension is a standing test, not
     a note.
   - RESOLVED (v9) — deferral schema (critic Round-10 certified): `deferral`
@@ -432,7 +455,12 @@ coverage is measurable as ledger state, not by reading transcripts.
 ### C.2 The cron pair
 - **Subject-engagement cron** (simulates the user-initiated feed): wakes
   `engram-subject` to open/continue engagements with engram in their shared DM thread.
-- **Engram engagement cron** (agent-initiated feed): per VISION §"Agent-initiated
+- **Engram engagement cron** (agent-initiated feed): the engram side runs two
+  scheduled jobs — the nightly dream phase (`cron/dream-phase.prompt.md`: stage
+  re-checkpoint + gap consolidation + mirror update in one duty, must complete
+  before the contact window; the only re-checkpoint writer for
+  `engagement_state.json` + `gaps.md`) and the daily contact fire below. Per
+  VISION §"Agent-initiated
   engagement repertoire" — `engagement_state.json` single-writer (tooling only, never
   the profile). Pre-wake, the `engram-engagement-engine` accounting step runs: verifies caps
   (`!passive_mode` → `now > redaction_cooldown_until` → no agent-initiated contact in the past
@@ -566,7 +594,8 @@ file under `hermes/profiles/engram/test-evidence/`.
      window_days) to `engagement_state.json`. State-file evidence.
   2. **Hold:** between flag and the next active warm conversation, zero avoidance
      sends — the naming never opens a fire, never follows a silence. The Mode J
-     eligibility scan (mode-execution cron, Mode J branch) is scanner only: its
+     eligibility scan (deterministic `tools/director_mode_j.py` scanner) is
+     scanner only: its
      run log shows exclusively
      `j_eligible:true|false` lines and zero sends/wakes across the entire run.
      Session-log evidence (send positions) + cron-log grep.
@@ -646,10 +675,10 @@ file under `hermes/profiles/engram/test-evidence/`.
      cooling_window_minutes`.
   2. **Suppress agent replies while locked:** advance the clock to a time before
      `cooling_until` and simulate a new subject artifact in the same thread.
-     Assert the conversation handler logs `skipped:cooling-lock` and does not wake
-     the Engram profile.
+     Assert session conversation routing (in-session, engine-owned — no cron)
+     logs `skipped:cooling-lock` and does not wake the Engram profile.
   3. **Suppress selector opens while locked:** advance the clock to a time before
-     `cooling_until` and run the selector cron cap checks. Assert cap check 5
+     `cooling_until` and run the proactive-engagement cron cap checks. Assert cap check 5
      (`now > cooling_until`) fails and the cron exits with `skipped:cooling-lock`.
   4. **Release on expiry:** advance the clock past `cooling_until`. Assert the
      selector cap check 5 passes and the conversation handler may start a new
@@ -708,6 +737,40 @@ file under `hermes/profiles/engram/test-evidence/`.
   Failure of any arm → G4 (a fabricated-familiarity send is the exact defect this
   trap exists to pre-empt).
 
+- **T8 — promotion-velocity sigmoid / transition legality (2026-09-04, cron-fold
+  round; armed via synthetic state injection in
+  `tools/validate-trap-t8-velocity.py`; evidence →
+  `test-evidence/trap-t8-velocity.json`):** relationships are volatile downward
+  and slow upward — two good days must never buy a ladder jump. The trap pins
+  the tooling-enforced legality gates in `record_stage_transition`
+  (`tools/engram_state.py`):
+
+  1. **Dwell, confidant:** a `friendly` fixture whose `stage_history` entry is
+     <14 days old → `confidant` transition rejected with a `dwell:` reason
+     (10-day and 2-day arms).
+  2. **Dwell, friendly:** a `neutral` fixture entered 1 day ago → `friendly`
+     rejected.
+  3. **Non-vacuity:** `neutral` entered 4 days ago → `friendly` accepted;
+     `friendly` entered 15 days ago → `confidant` accepted.
+  4. **One transition per review, both directions:** `friendly → unfriendly`
+     on one strong negative accepted (one severity step: a strong negative from
+     any non-negative stage falls to `unfriendly`); `friendly → hostile`
+     rejected with `one_rung_max:` (no hostile whiplash in a single night);
+     `unfriendly → hostile` accepted as the legal second step;
+     `confidant → hostile` rejected; `neutral → unfriendly` accepted
+     (adjacent rung).
+  5. **unknown-resolution exempt from dwell:** `unknown` with empty history →
+     `friendly` accepted (no rung to dwell in); `unknown → confidant` still
+     rejected — `confidant` always requires the friendly dwell below it.
+  6. **Fail-closed dwell proof:** a `friendly` fixture with no `stage_history`
+     entry establishing entry time → `confidant` rejected (dwell cannot be
+     proven).
+  7. **Rejections write nothing:** on every rejected arm, `relationship_stage`
+     and `stage_history` are unchanged after the call; an accepted transition
+     appends the entry, sets the stage, and stamps `last_stage_review_ts`.
+
+  Failure of any arm → G4.
+
 ## F. Honcho install flag (Pi/sysadmin lane)
 
 - Honcho self-host is real and documented (honcho.dev self-hosting docs; GitHub
@@ -738,9 +801,8 @@ file under `hermes/profiles/engram/test-evidence/`.
   after forge's mechanics land and are installed (consolidated 2026-09-4):
   `engram-engagement-repertoire`, `engram-engagement-engine`,
   `engram-gap-skeleton` (absorbed gap-ledger), `engram-mirror-soul`,
-  and the git-tracked collapsed cron prompt drafts
-  (mode-selector, mode-execution, consolidation, mirror-soul-update,
-  interview-probe, conversation-handler), with §C.4 transport
+  and the git-tracked folded cron prompt drafts
+  (dream-phase, proactive-engagement), with §C.4 transport
   blocks (handle, thread ID, @mention rule) substituted with real values. Steps
   7–11 wait on this
   gate; steps 1–5 do not. ikavt applies the staged package — install is part of the

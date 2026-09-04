@@ -40,10 +40,11 @@ mid-way habit drop: when the user goes quiet, the agent becomes a proactive rese
    - **User-initiated:** every engagement is a profiling opportunity. Chat text, voice
      memos (archived raw for future voice cloning + transcribed for the text corpus),
      shared photos/documents — all ingested, all archived.
-   - **Agent-initiated:** a background consolidation loop inspects the corpus and peer
-     model, maintains a **gap ledger**, runs the **dream-phase** relationship-stage
-     review, and prepares interviews. A cron wakes the Engram profile to deliver
-     gentle, curiosity-driven probes (see §Interview engine).
+   - **Agent-initiated:** the nightly dream-phase cron (relationship-stage
+     re-checkpoint, gap-ledger consolidation, mirror update) plus the daily
+     proactive-engagement cron (contact-window fire — see §Mechanics), which
+     delivers gentle, curiosity-driven contact per the repertoire (see
+     §Interview engine).
 
 4. **Mirror-SOUL.** A living `USER.md` — a SOUL.md *of the user* — maintained by the
    consolidation loop (Letta human/persona-block pattern, generalized). Every entry is
@@ -86,12 +87,17 @@ hostile | unfriendly | neutral | friendly | confidant`; `unknown` = cold start
 not an assumption: mode eligibility is stage-gated (at `unknown`, no
 history-anchored mode is eligible — the agent starts cold, small talk is the
 runway), and past-tense familiarity is banned without a verified anchor: never
-fake shared history. Stage transitions are decided by a **dream phase** in the
-consolidation loop — an out-of-session review scanning sessions since the last
-review, promoting only with citable evidence, demoting fail-closed; the
+fake shared history. Stage transitions are decided by the **dream phase** — the
+nightly `dream-phase` cron, an out-of-session review scanning sessions since the
+last review, promoting only with citable evidence, demoting fail-closed; the
 in-session agent never writes engagement state (single-writer). Gaps close at
 rapport peaks: Mode A/J are additionally paced by gap-pressure and rapport-peak
 signals, never forced on first contact or every opportunity.
+**Promotion velocity is sigmoidal:** promotions are dwell-gated — days at the
+rung below, weeks at the higher rungs (→`friendly` ≥3 days at `neutral`,
+→`confidant` ≥14 days at `friendly`, tooling-enforced) — while demotions
+fail-closed on one strong negative but move at most one rung per night (never
+to `hostile` in a single night): volatile-but-realistic, never whiplash.
 
 **Modes:**
 - **A. Curiosity callback** — the original interview engine, demoted to *fallback*:
@@ -156,13 +162,28 @@ Mode I otherwise.
   fields `relationship_stage`, `stage_history` (append-only), and
   `last_stage_review_ts`.
 - **Mechanics (unchanged, generalized to all contacts):** caps enforced by cron
-  tooling, never profile prose. Active-session detection is a deterministic lookup.
+  tooling, never profile prose. The engram side runs exactly **two crons**, both
+  git-tracked under `hermes/profiles/engram/cron/`:
+  - **`dream-phase.prompt.md`** — the nightly dream phase: relationship-stage
+    re-checkpoint + gap tick-offs + `USER.md` mirror update in one duty. Runs
+    out of session while the subject sleeps and must complete before morning;
+    the morning session starts from the new checkpoint
+    (`engagement_state.json` + `gaps.md` are otherwise a static checkpoint —
+    only the dream phase re-checkpoints them).
+  - **`proactive-engagement.prompt.md`** — the daily proactive engagement fire:
+    jittered contact window, the full pre-wake gate ladder (caps → passive /
+    redaction cooldown → 24h rolling contact window → active session → cooling
+    lock → stage gate → anchor verification), mostly resolving to Mode I
+    silence (log the reason, touch no state beyond tooling stamps).
+  Active-session detection is a deterministic lookup.
   Contacts land in a configured window (e.g. 18:00–22:00 subject-local) with bounded
   jitter (±45 min) applied by the scheduler. Check order: tooling verifies
   `!passive_mode`, `now > redaction_cooldown_until`, no agent-initiated contact in the past
   24 hours (rolling), no active session, `now > cooling_until` (no active Mode I
   cooling lock) — *before* waking the profile. The profile may decline
   (`declined:<reason>`, no `ignored_count` increment); the tooling may not be bypassed.
+  Mid-session reply routing is in-session behavior owned by the SOUL + the
+  engine/repertoire skills — no cron for it.
 - **Stop conditions:** explicit "not now" → respect + cooldown; three consecutive
   ignored contacts → passive mode until next user-initiated contact.
 

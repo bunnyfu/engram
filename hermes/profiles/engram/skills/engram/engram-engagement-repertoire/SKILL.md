@@ -23,7 +23,8 @@ instrument, not an interrogation.
 
 ## When to Use
 
-- The engine (selector cron or session conversation routing) has selected a mode and
+- The engine (proactive-engagement cron or session conversation routing) has
+  selected a mode and
   woken the Engram profile with this skill loaded.
 - A mid-session reply needs phase-specific phasing guidance (`open`, `nudging`,
   `closing`) from the engine.
@@ -293,7 +294,7 @@ candidate fails the voice gate.
   `silence:per-mode-cadence`, `silence:stage-gate` (candidate blocked below its
   `min_stage`), `silence:gap-pacing` (`gap_pressure` or no rapport-peak signal),
   `silence:anchor-unverified` (candidate's anchor failed verification);
-  conversation-handler cooling-lock suppression logs `skipped:cooling-lock`
+  mid-session cooling-lock suppression logs `skipped:cooling-lock`
   instead.
 - **Touch-no-state rules:** log the reason (a tooling record for the judge —
   logging nothing is a defect); no profile wake; no `last_contact_ts`, `last_mode`,

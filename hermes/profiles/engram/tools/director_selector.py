@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Director: engram mode-selector cron.
+"""Director: engram proactive-engagement cron.
 
 Pure deterministic pre-run. Writes a decision file and, if a send-mode is
 selected, triggers the matching actuator cron job. Idle ticks consume zero LLM
@@ -28,23 +28,25 @@ from engram_state import (
 DECISION_PATH = REPO_ROOT / "cron_decision.json"
 LOG_PATH = REPO_ROOT / "cron_output" / "selector.log"
 
-# Actuator routing, collapsed 2026-09-04 with the skill consolidation: modes B–H
-# share the single parameterized mode-execution actuator (the former per-mode
-# stubs are gone); Mode A keeps its dedicated tool-less interview-probe
-# actuator. The hermes cron *job IDs* (needed for outcome polling via
-# get_actuator_outcome) are install-time values — the one below is from the
-# 2026-08-28 throwaway round. Rebind at install; while an ID is unknown the
-# director triggers by name and skips outcome polling (logged as
+# Actuator routing, folded 2026-09-04 with the cron consolidation (6 prompts
+# -> 2): the former mode-selector + mode-execution crons (and Mode A's
+# dedicated tool-less interview-probe actuator) are absorbed by the single
+# proactive-engagement prompt, which selects AND executes in one cron fire.
+# Installs that split director and executor into separate jobs keep this table:
+# rebind the name/ID at install. The hermes cron *job IDs* (needed for outcome
+# polling via get_actuator_outcome) are install-time values — the one below is
+# from the 2026-08-28 throwaway round. Rebind at install; while an ID is
+# unknown the director triggers by name and skips outcome polling (logged as
 # outcome_missing:no_job_id).
 ACTUATORS = {
-    "A": ("interview-probe", "1bf4019bdabb"),
-    "B": ("mode-execution", None),
-    "C": ("mode-execution", None),
-    "D": ("mode-execution", None),
-    "E": ("mode-execution", None),
-    "F": ("mode-execution", None),
-    "G": ("mode-execution", None),
-    "H": ("mode-execution", None),
+    "A": ("proactive-engagement", None),
+    "B": ("proactive-engagement", None),
+    "C": ("proactive-engagement", None),
+    "D": ("proactive-engagement", None),
+    "E": ("proactive-engagement", None),
+    "F": ("proactive-engagement", None),
+    "G": ("proactive-engagement", None),
+    "H": ("proactive-engagement", None),
 }
 
 

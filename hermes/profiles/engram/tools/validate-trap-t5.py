@@ -3,7 +3,7 @@
 
 Synthetic state-injection harness. Verifies that once the exchange budget hits the
 close threshold, the closing beat fires, the engine sets the cooling lock,
-and both the selector cron and the session conversation routing suppress further
+and both the proactive-engagement cron and the session conversation routing suppress further
 agent output until cooling_until expires. Includes a break-test that disables the
 lock and confirms the trap would fail.
 
@@ -51,9 +51,9 @@ REQUIRED_CLAUSES = [
         "repertoire (Mode I) recognizes skipped:cooling-lock",
     ),
     (
-        ROOT / "cron" / "mode-selector.prompt.md",
+        ROOT / "cron" / "proactive-engagement.prompt.md",
         r"now\s*<=\s*cooling_until",
-        "selector cron lists cooling_until stop condition",
+        "proactive-engagement cron lists cooling_until stop condition",
     ),
 ]
 

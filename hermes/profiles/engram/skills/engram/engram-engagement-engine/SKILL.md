@@ -25,11 +25,11 @@ never writes state.
 
 ## When to Use
 
-- At the very beginning of every engagement cron fire (selector, mode execution,
-  conversation handling) — before any cap check or mode selection.
+- At the very beginning of every engagement cron fire (proactive-engagement
+  fire, conversation handling) — before any cap check or mode selection.
 - When the Mode J eligibility scan runs or a Mode J outcome needs disposition.
 - When a session reply needs phase narrowing (`open` / `nudging` / `closing`).
-- When the dream-phase stage review (run by the consolidation duty) derives a
+- When the dream-phase stage review (the nightly dream-phase cron) derives a
   relationship-stage transition (stage model below).
 
 Don't use for: drafting, phrasing, or per-mode voice contracts
@@ -150,13 +150,15 @@ eligibility checks in mode selection).
   user-mentioned event; no history-anchored modes, no past-tense phrasing,
   present-tense curiosity only.
 - **Stage derivation is a dream-phase review**, engine-owned and executed by the
-  consolidation duty (cron) — an out-of-session step that must complete before
+  consolidation duty (the nightly `dream-phase` cron) — an out-of-session step
+  that must complete before
   the daily contact window. Scan window: all sessions since
   `last_stage_review_ts`; a first-ever review (`null`) scans the full archive
   index. Decision procedure: evaluate the evidence signals across the scanned
   arc — subject-initiation reciprocity, reply-depth reciprocity, unprompted
   self-disclosure, explicit warmth markers, ignored contacts (down),
-  hostility/irritation markers (down) — and decide promote/demote.
+  hostility/irritation markers (down) — and decide promote/demote, at most ONE
+  rung per review in either direction.
 - **Promotion requires cited evidence** — a verbatim quote or artifact reference,
   recorded as `evidence_ref` in the appended `stage_history` entry. **Demotion fails
   closed:** one strong negative signal (hostility, irritation, sustained ignoring)
@@ -170,6 +172,29 @@ eligibility checks in mode selection).
   judge demotions, and the dream-phase reviewer sees the whole arc, not the
   moment it is inside; **freshness** — a ≤24h lag before a transition lands is
   acceptable, promotions do not need to be instant.
+- **Promotion velocity (the sigmoid).** Relationships are volatile — a fight
+  means next-morning tension, a real and immediate downgrade — but two days of
+  good engagement must never buy neutral→friendly→confidant. Promotion cost
+  rises with the rung: an implied sigmoid over the ladder.
+  - **Hard gates (tooling-enforced, `tools/engram_state.py`):** dwell minimums
+    before a promotion is *legal* — →`friendly` requires ≥3 days at `neutral`;
+    →`confidant` requires ≥14 days at `friendly`. The first review resolving
+    `unknown` is exempt from dwell (there is no rung to dwell in), but
+    `confidant` always requires the friendly dwell below it. Max **one** stage
+    transition per dream review, both directions. Promotions advance exactly
+    one rung. Demotions fail closed on one strong negative signal and fall at
+    most one rung gently — or to `unfriendly` from any non-negative stage —
+    but `hostile` is reachable only from `unfriendly`: no hostile whiplash in
+    a single night. `record_stage_transition` rejects an illegal move with a
+    reason (`dwell:…`, `one_rung_max:…`); it never clamps silently — the dream
+    phase logs the rejection.
+  - **Procedural judgment:** whether the evidence justifies a promotion within
+    the legal dwell budget is the dream phase's call; tooling only enforces
+    legality.
+- **Checkpoint semantics:** `engagement_state.json` and `gaps.md` are a static
+  checkpoint read at session start. Sessions develop on top of it as hot
+  context — the in-session agent reads, never writes — and only the dream
+  phase re-checkpoints them (single-writer discipline unchanged).
 - **Depth permission is derived per stage, not stored.** Consumers compute it from
   `relationship_stage` + the repertoire's `min_stage` matrix; nothing else
   persists.
@@ -221,7 +246,7 @@ stage.
 
 Invocation contexts:
 
-- **Agent-initiated contact (selector cron):** checks 1–5 must all pass before a
+- **Agent-initiated contact (proactive-engagement cron):** checks 1–5 must all pass before a
   fresh opener is considered, and the stage gate + anchor verification (6–7)
   filter every candidate mode.
 - **Mid-session reply (conversation routing):** checks 1–5 are skipped; routing has
@@ -329,14 +354,14 @@ Once `cooling`, the phase stays `cooling` until `cooling_until` expires — no
 mid-session logic, subject message, or cron resets it early. Set-once per close;
 its semantics mirror `avoidance_named` in the gap ledger. During the lock:
 conversation routing does not reply to same-thread subject artifacts (log
-`skipped:cooling-lock`); the selector cron does not open a new agent-initiated
+`skipped:cooling-lock`); the proactive-engagement cron does not open a new agent-initiated
 contact (cap check 5); `mode_last_sent.I` is never written (cooling is not a Mode I
 selection — the closing mode's entry carries the cadence signal).
 
 ## Session conversation routing (absorbs the conversation handler)
 
 The only component that wakes the Engram profile to respond once a session is
-open. Opening brand-new agent-initiated contact is the selector cron's job.
+open. Opening brand-new agent-initiated contact is the proactive-engagement cron's job.
 
 **Stop conditions** (exit silently, no reply, no wake): state unreadable/malformed
 → log error; `session_wind_down_phase == cooling` and `now <= cooling_until` → log
@@ -429,7 +454,7 @@ Only this skill (its tooling, `tools/engram_state.py` and the directors) writes:
 `relationship_stage`, `stage_history`, `last_stage_review_ts` are written only
 by the dream-phase review tooling) and slot-level `deferral` /
 `avoidance_named` fields in `gaps.md`. Mode prompts, actuators, and the profile
-**invoke or report**; they never read or write state directly. The selector cron
+**invoke or report**; they never read or write state directly. The proactive-engagement cron
 reads scheduling state but does not evaluate Mode J eligibility.
 
 ## Prose vs. tooling (`tools/engram_state.py`) divergences
@@ -458,9 +483,12 @@ silently:
    practice.
 7. Stage derivation: the signal scoring is procedural in the dream phase — the
    code ships the deterministic gates (`MODE_MIN_STAGE`, gap pressure,
-   rapport-peak-from-`stage_history`), the `record_stage_transition` write helper,
-   and `last_stage_review_ts` bookkeeping (`stage_review_due`,
-   `record_stage_review`) only, not the signal reading itself.
+   rapport-peak-from-`stage_history`), the `record_stage_transition` write
+   helper (with the promotion-velocity legality gates: `DWELL_MIN_DAYS` dwell
+   minimums and the one-rung-per-review cap, rejections returned with a
+   reason, never clamped), and `last_stage_review_ts` bookkeeping
+   (`stage_review_due`, `record_stage_review`) only, not the signal reading
+   itself.
 8. Anchor verification: the code verifies the deterministic part only — `gaps.md`
    exemplar / archive-index existence on disk. Derived-store recall hits cannot be
    checked on disk; they are recorded procedurally in the dream-phase review (as
@@ -510,5 +538,6 @@ silently:
       returned verbatim; deferral record complete; one-knock cap enforced.
 - [ ] Any relationship-stage transition came out of the dream-phase review and
       was appended to `stage_history` with a cited `evidence_ref`; promotion
-      without evidence did not happen; `last_stage_review_ts` advanced.
+      without evidence did not happen; dwell and one-rung legality held (or the
+      rejection was logged, never forced); `last_stage_review_ts` advanced.
 - [ ] Every outcome was persisted by the engine, not by a prompt or the profile.
