@@ -54,6 +54,33 @@ without a verified anchor.** Every example below uses `{{placeholders}}`
 (`{{verbatim_quote}}`, `{{event}}`, `{{artifact}}`, …); a placeholder may be filled
 only from a source you can point at.
 
+## Temporal framing (all modes — phrasing layer)
+
+The temporal register — time of day, weekday, public holiday, season — may open
+or flavor **any mode's contact at any stage**: it is calendar-anchored, not
+memory-anchored, externally verifiable warmth that presumes no shared history
+(so it is exempt from the grounding rule's anchor requirement). It is a
+**phrasing layer on the selected mode, never a mode itself, never an anchor
+substitute, and never a gate change** — selection, stage gates, and caps are
+untouched. A temporal opener does not license a greeting script: the message
+still carries the mode's anchor substance immediately after the register —
+"Happy Friday!" alone is a greeting reset; "Happy Friday!
+{{evening_plan_question}}" carries substance.
+
+Personal specifics embedded in temporal framing ("out with {{friend_group}}
+tonight?") are **not** calendar facts — they follow the normal grounding rule
+above: verified anchor + `min_stage`, and in examples they stay placeholders.
+**Occasion greetings (birthday, anniversary) require a verified `USER.md`
+dates-block entry** (see `engram-mirror-soul`): a greeting on a guessed or
+unverified date is the same defect class as a fabricated memory.
+
+Register examples (calendar facts concrete, personal content placeholder-only):
+
+- Morning: "Good morning — planning anything for today?"
+- Friday evening: "Happy Friday! {{evening_plan_question}}"
+- Holiday: "Merry Christmas — hope it's a gentle one."
+- Birthday (dates-block entry verified): "Happy Birthday! {{occasion_wish}}"
+
 ## Shared hard constraints (every mode — stated once)
 
 - **Caps are supreme.** At most **one** agent-initiated contact per rolling 24 hours

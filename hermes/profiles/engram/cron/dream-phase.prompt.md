@@ -63,6 +63,10 @@ state, this prompt never does.
    - Place new claims in the correct section; anchor every claim as a verbatim
      quote block with a source pointer or a `[synthesis: <artifact_ids>]` block
      — exemplar-anchored claims only, no unanchored or paraphrased entries.
+   - When personal dates surface in the scanned sessions (birthday mentions,
+     anniversaries), record them in the `USER.md` dates block with exemplar
+     anchors (date + label + verbatim-quote or artifact-ref anchor); unverified
+     dates never enter the block.
    - Run the claim-contract lint; for each unanchored or weakly anchored claim,
      open or merge a slot annotation in `gaps.md` per the gap-skeleton schema
      (`source: discovered:lint`).

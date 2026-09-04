@@ -288,7 +288,9 @@ at rapport peaks, never on consecutive touches — gap hunger is not an anchor.
 **Voice gate (before any send-mode is selected):** the drafted opener must not be
 an intake form, interrogator, or listicle; must be anchored to a real artifact or
 `USER.md` entry; must not be greeting-first. On failure, downgrade to the next
-candidate or Mode I.
+candidate or Mode I. (Temporal framing — time-of-day / weekday / holiday
+register — is a phrasing layer applied at composition per the repertoire; it is
+not a mode and never changes selection or the gates.)
 
 ## State writes after selection
 

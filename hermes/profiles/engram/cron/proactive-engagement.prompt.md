@@ -73,12 +73,31 @@ owned by the SOUL plus the engine/repertoire skills — no cron for it.
    curious-friend opener based on the selected gap — output only the message
    text, no meta-commentary, no tools beyond the send and archive. If the anchor
    is stale or weak, return `declined:<reason>`; do not update state.
-3. Draft one message and run the voice gate on it.
-4. Send it to the counterpart `@caleb` in the MIKOSHI channel
+3. **Establish temporal context** (framing layer on the selected mode — never a
+   mode, never an anchor substitute, never a gate change):
+   - Read the current time-of-day and date from the wake context / system clock:
+     morning / afternoon / evening, day of week, public holidays, season (local
+     calendar facts only — never an external fetch).
+   - Check the `USER.md` **dates block** for a same-day occasion (birthday,
+     anniversary).
+   - Compose with temporal framing that fits — morning/day/evening registers,
+     weekday flavor, holiday greeting, occasion greeting — per the repertoire's
+     temporal-framing rule. Calendar facts are framing-safe at any stage
+     (externally anchored warmth, no shared-history claim); personal specifics
+     embedded in the framing stay parameterized placeholders and follow the
+     normal grounding rule (verified anchor + `min_stage`). Examples:
+     "Good morning — planning anything for today?", "Happy Friday!
+     {{evening_plan_question}}", "Merry Christmas!", "Happy Birthday!
+     {{occasion_wish}}".
+   - Never invent or assume a date: no occasion greeting without the verified
+     `USER.md` dates entry — a wrong-date "Happy Birthday" is the same defect
+     class as a fabricated memory.
+4. Draft one message and run the voice gate on it.
+5. Send it to the counterpart `@caleb` in the MIKOSHI channel
    (`11q5an3haffxfpo6kfradxp75y`) — your outbound message must @mention the
    counterpart in this thread; an unmentioned reply reaches no one.
-5. Archive the raw session verbatim.
-6. Return the outcome to the engine:
+6. Archive the raw session verbatim.
+7. Return the outcome to the engine:
    - `sent:<mode>:<phase>` + whether the subject responded, was silent, or signaled
      redaction.
    - `declined:<reason>` if the voice gate or anchor check refused the send.
@@ -92,11 +111,15 @@ owned by the SOUL plus the engine/repertoire skills — no cron for it.
      `silence:per-mode-cadence`, `silence:stage-gate`, `silence:gap-pacing`,
      `silence:anchor-unverified`.
    - Cooling-lock suppression (stop condition 6): `skipped:cooling-lock`.
-2. No message is sent. No profile wake for contact.
-3. Do not increment `ignored_count` or change `passive_mode`.
-4. Do not append to `mode_history` or update `last_contact_ts`, `last_mode`, or
+2. Silence may be temporally informed: a calendar occasion (holiday, verified
+   dates-block occasion) is a reason to lean send-ward in selection — still
+   respecting every gate; temporal context never licenses a send the ladder did
+   not select.
+3. No message is sent. No profile wake for contact.
+4. Do not increment `ignored_count` or change `passive_mode`.
+5. Do not append to `mode_history` or update `last_contact_ts`, `last_mode`, or
    `mode_last_sent` (`mode_last_sent.I` is never written).
-5. Exit.
+6. Exit.
 
 ### Mode J — eligibility scanner (no send)
 

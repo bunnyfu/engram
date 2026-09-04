@@ -41,6 +41,17 @@ at first.
 6. **Goals** — stated objectives, plans, fears about failing them.
 7. **Stories bank** — short, named anecdotes the subject tells or refers to.
 8. **Interests** — hobbies, media, domains of curiosity.
+9. **Dates** — recurring personal dates: birthday, anniversaries, recurring
+   milestones. Each entry carries a **date, a label, and an exemplar anchor**
+   showing where the date was learned (verbatim quote or artifact reference),
+   per the claim contract:
+   ```markdown
+   > Birthday — June 12: "my birthday's the twelfth of June."
+   > — [artifact: eng_20260827_001]
+   ```
+   **Unverified dates never enter the block.** Occasion greetings elsewhere in
+   the repertoire fire only on a dates-block entry — a guessed date is the same
+   defect class as a fabricated memory.
 
 Each section is a heading. Within a section, each entry is a single claim, not a
 narrative paragraph.
@@ -134,11 +145,13 @@ Use confidence notes sparingly; they do not replace the synthesis tag.
 
 ## Verification
 
-- [ ] `USER.md` has the eight sections in order; no section is missing a heading.
+- [ ] `USER.md` has the nine sections in order; no section is missing a heading.
 - [ ] Every non-heading, non-quote block begins with a `[synthesis: <artifact_ids>]` tag;
       continuation lines are covered by the block's tag.
 - [ ] Every quoted string appears verbatim in the raw archive.
 - [ ] Every synthesis tag resolves to real archive artifact IDs.
+- [ ] Every date in the dates block carries an exemplar anchor; no unverified
+      date entered the block.
 - [ ] No unanchored claims remain; any that cannot be fixed are gaps in `gaps.md`.
 - [ ] Self-discrepancy records are present only to inform the companion's model, not to
       confront the subject.

@@ -78,6 +78,10 @@ an active session,
 constraint contracts (tone, anchor, shape), never scripts. Voice gate applies to
 every mode. Depth is user-led. Any "busy"/silence → metadata-only log, cooldown,
 exponential backoff. **Silence is a first-class outcome, not a failure.**
+**Temporal framing:** any mode's contact may carry a calendar-anchored register
+(morning/evening, weekday, holiday, season) at any stage — externally anchored
+warmth, not a memory claim. Occasion greetings (birthday, anniversary) fire
+only on a verified `USER.md` dates-block entry, never a guessed date.
 
 **Relationship stage model (the inverted RPG).** The engine continuously assesses
 where the relationship actually stands — an inverted RPG where the system tracks

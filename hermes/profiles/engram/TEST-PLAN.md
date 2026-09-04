@@ -468,7 +468,10 @@ coverage is measurable as ledger state, not by reading transcripts.
   then may the profile be woken. The engine's mode-selection ladder disposes the mode
   (event-driven B/H/G → relationship modes C/F/D/E by anchor strength with
   `mode_history` variety enforced → Mode A only on a high-priority gap → Mode I
-  silence) and per-mode cadence via `mode_last_sent`; per-mode fragments propose,
+  silence) and per-mode cadence via `mode_last_sent`; after selection a
+  temporal-context step applies calendar-anchored framing (time-of-day /
+  weekday / holiday register — a phrasing layer, no new mode; occasion greetings
+  only via a verified `USER.md` dates entry). Per-mode fragments propose,
   they never touch state. Contact window with bounded jitter (e.g. 18:00–22:00
   ±45 min) applied by the scheduler; a profile `declined:<reason>` outcome sets
   `last_contact_ts` but does NOT increment `ignored_count`.
