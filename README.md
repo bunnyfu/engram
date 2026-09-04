@@ -13,9 +13,9 @@ What's in the box: the profile `SOUL.md`; four skills under `skills/engram/`
 (`engram-engagement-engine`, `engram-engagement-repertoire`,
 `engram-gap-skeleton`, `engram-mirror-soul`); two cron prompts under `cron/`
 (`dream-phase`, `proactive-engagement`); a `tools/` directory of validators and
-deterministic gates with their recorded trap evidence (`test-evidence/`); and the
-state fixtures the loop runs on — `gaps.md`, `engagement_state.json`, and the
-`archive/` index.
+deterministic gates (trap evidence regenerates under `test-evidence/` on run);
+and the state fixtures the loop runs on — `gaps.md`, `engagement_state.json`,
+and the `archive/` index.
 
 ## Mission
 
