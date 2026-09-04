@@ -28,6 +28,7 @@ never writes state.
   conversation handling) — before any cap check or mode selection.
 - When the Mode J eligibility scan runs or a Mode J outcome needs disposition.
 - When a session reply needs phase narrowing (`open` / `nudging` / `closing`).
+- When session wind-down derives a relationship-stage transition (stage model below).
 
 Don't use for: drafting, phrasing, or per-mode voice contracts
 (`engram-engagement-repertoire`); gap taxonomy and slot semantics
@@ -69,7 +70,16 @@ interview skill schemas). Reference implementation: `tools/engram_state.py`.
   "cooling_window_minutes": 30,
   "cooling_until": null,
   "session_recency_threshold_seconds": 900,
-  "contact_window_hours": 24
+  "contact_window_hours": 24,
+  "relationship_stage": "friendly",
+  "stage_history": [
+    {
+      "stage": "neutral",
+      "ts": "2026-08-20T18:00:00Z",
+      "direction": "up",
+      "evidence_ref": "eng_20260820_002"
+    }
+  ]
 }
 ```
 
@@ -113,6 +123,36 @@ Field definitions:
   begin.
 - `session_recency_threshold_seconds`: session recency bound (default 900 = 15 min).
 - `contact_window_hours`: rolling agent-initiated contact cap window (default 24).
+- `relationship_stage`: current relationship stage, one of
+  `unknown | hostile | unfriendly | neutral | friendly | confidant` (see the stage
+  model below). Default `unknown` — a fresh subject is a cold start.
+- `stage_history`: append-only log of stage transitions. Each entry is
+  `{stage, ts, direction, evidence_ref}` with `direction` `up` or `down`. Entries
+  are never rewritten or removed. Depth permission is **derived per stage, never
+  stored** — only these two fields live in state.
+
+## Relationship stage model
+
+The relationship's depth is tracked as a stage, and every send-mode is gated on it
+(the `min_stage` matrix lives in `engram-engagement-repertoire`; the gates run as
+eligibility checks in mode selection).
+
+- **Enum:** `unknown | hostile | unfriendly | neutral | friendly | confidant`.
+- **`unknown` = cold start:** no verified subject data exists. It behaves as
+  depth-permission-zero — the eligible set is Mode I, G, D, and B on an explicitly
+  user-mentioned event; no history-anchored modes, no past-tense phrasing,
+  present-tense curiosity only.
+- **Stage derivation is engine-owned** and runs at session wind-down from evidence
+  signals: subject-initiated session count, reply-length reciprocity, unprompted
+  self-disclosure depth, explicit warmth markers, ignored contacts (down), and
+  hostility/irritation markers (down).
+- **Promotion requires cited evidence** — a verbatim quote or artifact reference,
+  recorded as `evidence_ref` in the appended `stage_history` entry. **Demotion fails
+  closed:** one strong negative signal (hostility, irritation, sustained ignoring)
+  is enough; no evidence quorum is owed to back off.
+- **Depth permission is derived per stage, not stored.** Consumers compute it from
+  `relationship_stage` + the repertoire's `min_stage` matrix; nothing else
+  persists.
 
 ## Pre-wake accounting step (runs first, every fire)
 
@@ -134,7 +174,7 @@ that arrived between fires must clear `passive_mode` before that check, or the c
 bails out incorrectly and passive mode sticks (TEST-PLAN trap T2 disarm half). The
 profile never decides "this probably counts as user contact."
 
-## Cap checks (in order; exit silently on first failure)
+## Cap checks (in order; 1–5 exit silently on first failure, 6–7 gate eligibility)
 
 1. `passive_mode == false`
 2. `now > redaction_cooldown_until`
@@ -143,13 +183,31 @@ profile never decides "this probably counts as user contact."
 4. No active session (counterpart message or open session within the configured
    recency threshold)
 5. `now > cooling_until` (no active Mode I cooling lock)
+6. **Stage gate** (eligibility, not a bail): every candidate send-mode must satisfy
+   its `min_stage` against `relationship_stage`. At `unknown` only the cold-start
+   eligible set is available — I, G, D, and B on an explicitly user-mentioned
+   event; no history-anchored modes, no past-tense phrasing.
+7. **Anchor verification** (eligibility, not a bail): every mode with an anchor
+   requirement must have its anchor **verified before it is eligible** — the
+   `exemplar` field in `gaps.md` pointing at a real archive artifact, an
+   archive-index hit, or a recorded derived-store recall hit. Verification failure
+   falls through to a lower mode or Mode I; it never suppresses the fire and never
+   authorizes an unverified send.
+
+Checks 1–5 failing exits the cron silently. Checks 6–7 failing narrows the
+selection: the candidate mode is disqualified and the ladder falls through to a
+lower mode or Mode I. A mode is never sent on an unverified anchor or below its
+stage.
 
 Invocation contexts:
 
-- **Agent-initiated contact (selector cron):** all five checks must pass before a
-  fresh opener is selected.
+- **Agent-initiated contact (selector cron):** checks 1–5 must all pass before a
+  fresh opener is considered, and the stage gate + anchor verification (6–7)
+  filter every candidate mode.
 - **Mid-session reply (conversation routing):** checks 1–5 are skipped; routing has
   already established that a reply is warranted and the session is not `cooling`.
+  The stage gate still applies to mid-session mode narrowing, and Mode J delivery
+  additionally requires the warm-exchange and slot predicates below.
 
 ## Mode selection priority ladder
 
@@ -175,6 +233,12 @@ Invocation contexts:
    anchor.
 5. **Mode I (silence):** default when no mode has a strong enough anchor, a cap
    would be violated, or all candidates fail the voice gate.
+
+**Gap pacing (Mode A and Mode J):** `gap_pressure` is active when an A-or-J contact
+is among the **last 2 agent-initiated contacts** (`mode_history[-2:]`) — it blocks
+Mode A (and Mode J). Mode A additionally requires a **rapport-peak signal**: a
+recent self-disclosure event or a stage promotion in `stage_history`. Gaps close
+at rapport peaks, never on consecutive touches — gap hunger is not an anchor.
 
 **Voice gate (before any send-mode is selected):** the drafted opener must not be
 an intake form, interrogator, or listicle; must be anchored to a real artifact or
@@ -301,6 +365,10 @@ is J-eligible when **all** hold:
    agent did not just re-engage after silence).
 4. The slot is not `declined`, `closed`, `versioned`, or `deferred-open`.
 
+Slot eligibility is necessary, not sufficient: delivery additionally passes the
+stage gate (cap check 6 — Mode J's `min_stage` is `friendly`, confidant preferred,
+per the repertoire matrix) and gap pacing (`gap_pressure` blocks J like A).
+
 Multiple eligible slots → highest priority per the `engram-gap-skeleton` formula,
 tie-break earliest `last_touched`. On a hit, write `mode_j_eligible`
 (slot_id, slot, anchor, eligible_since, window_days); the eligibility cron itself
@@ -355,16 +423,33 @@ silently:
 3. Mode J warmth check: prose requires an active exchange that is not a
    session-opener; the code additionally requires `session_opened_by == "subject"`
    (stricter — agent-opened warm sessions are never eligible).
-4. `select_mode` matches a literal `priority: high` field — the **old gap-ledger
-   schema**. Under the canonical `engram-gap-skeleton` schema (computed priority),
-   no slot matches and the selector falls through to Mode I until the deterministic
-   priority formula is implemented in tooling.
+4. Priority formula: prose computes `deliverable_value × anchor_strength × tier_gate ×
+   recency_of_attempt` (`engram-gap-skeleton`); the code's Mode A path takes the
+   first `open`/`partial` gap whose exemplar passes verification (stage gate + gap
+   pacing + rapport peak applied), not the computed-priority order — the formula is
+   still unimplemented in tooling.
 5. Prose says the selector "instructs" the accounting step; in code the director
    imports `engram_state` and writes directly — same single-writer boundary,
    different mechanics.
 6. `record_send` would write `mode_last_sent.I` if ever called with `"I"`; by
    construction it never is (Mode I is a no-send), so prose and code agree in
    practice.
+7. Stage derivation: the wind-down signal scoring (session counts, reply-length
+   reciprocity, self-disclosure depth, warmth/hostility markers) is procedural —
+   the code implements the deterministic gates (`MODE_MIN_STAGE`, gap pressure,
+   rapport-peak-from-`stage_history`) and the `record_stage_transition` write
+   helper, not the signal reading itself.
+8. Anchor verification: the code verifies the deterministic part only — `gaps.md`
+   exemplar / archive-index existence on disk. Derived-store recall hits cannot be
+   checked on disk; they are recorded procedurally at wind-down (as
+   `evidence_ref`s) and trusted from those records.
+9. The unknown-stage B exception ("explicitly user-mentioned event") is approximated
+   in code by "a subject artifact exists in the archive index" — no
+   event-matching machinery exists yet (event-driven B/H/G triggers remain
+   unimplemented, as above).
+10. Rapport peak: a stage promotion in `stage_history` (within the configured
+    window, default 7 days) is checked deterministically; "recent self-disclosure
+    event" is procedural — self-disclosure events are not yet recorded in state.
 
 ## Pitfalls
 
@@ -372,6 +457,10 @@ silently:
   relationship mode with a stronger anchor.
 - **Mode fatigue.** Without `mode_history` variety the selector loops.
 - **Weak-anchor sends.** A send without a strong anchor is `cadence-pressure`.
+- **Fabricated familiarity.** Past-tense phrasing below `friendly` stage — or
+  anywhere without a verified anchor — is the exact defect the stage gate and
+  anchor verification exist to prevent. A fresh subject is a cold start, never a
+  reunion.
 - **Double writes.** Directors/prompts must not write state; only the engine does.
 - **Opening a new mode mid-session.** Sustain `session_last_agent_mode` always.
 - **Ignoring or resetting the cooling lock.** `cooling_until` is a hard cap;
@@ -384,8 +473,10 @@ silently:
 ## Verification
 
 - [ ] Pre-wake accounting ran first; `passive_mode` cleared on subject contact.
-- [ ] All five cap checks passed, in order, before any agent-initiated selection.
-- [ ] Selection followed B/H/G → revisit → C/F/D/E variety+cadence → A → I.
+- [ ] All five cap checks passed, in order, before any agent-initiated selection;
+      the stage gate and anchor verification (6–7) filtered every candidate mode.
+- [ ] Selection followed B/H/G → revisit → C/F/D/E variety+cadence → A → I, with
+      gap pacing (`gap_pressure`, rapport peak) applied to A and J.
 - [ ] Voice gate applied to the selected send-mode.
 - [ ] Mode I logged a reason; no profile wake; no state advanced.
 - [ ] Session boundary used thread identity + recency; exchange counts only rose.
@@ -395,4 +486,6 @@ silently:
       landing instruction; `closing` forced one short final reply.
 - [ ] Mode J: predicate deterministic; `avoidance_named` exactly-once; refusals
       returned verbatim; deferral record complete; one-knock cap enforced.
+- [ ] Any relationship-stage transition was appended to `stage_history` with a
+      cited `evidence_ref`; promotion without evidence did not happen.
 - [ ] Every outcome was persisted by the engine, not by a prompt or the profile.

@@ -196,6 +196,12 @@ it is encoded with hard semantics.
 
 - A skeleton slot is `open` or `partial`.
 - It is marked `sensitivity: handle-with-care`.
+- **Relationship stage ≥ `friendly`** (`confidant` preferred) — handle-with-care
+  slots and Mode J probes are stage-gated on top of tier gating; see the
+  relationship stage model in `engram-engagement-engine`. At `unknown`/`neutral`
+  the mechanic is fully disabled — naming a silence presumes a relationship that
+  can absorb it. (Gap *pacing* — the rapport-peak rule for Mode A — also lives in
+  the engine.)
 - The corpus has **zero mentions** of the slot topic over a long parameterized window
   (default: the last 90 days of archive, or all archive if < 90 days old).
 - The slot is not already `declined`, `closed`, or `versioned`.
@@ -257,10 +263,15 @@ Deferral rules:
     `revisit_after` is set to the literal cue time if parseable.
 - **Revisit cadence:** weeks, not days; default `revisit_after = last_deferred_at + 14 days`
   unless `user_cue` overrides it.
-- **Revisit shape:** occasion-anchored, references the user's own deferral, one sentence,
+- **Revisit shape:** occasion-anchored, references the user's own deferral (quoted
+  from the recorded `deferral` — a verified anchor by construction), one sentence,
   shallow exit. Examples:
-  - *"You mentioned the full story was too long for chat — up for telling it over a voice memo when you have bandwidth?"*
-  - *"You said after exams would be better. No pressure, just letting you know I'm around if you want to talk then."*
+  - *"{{user_deferral_quote}} — up for telling it over a voice memo when you have
+  bandwidth?"* (deferral reason `long_story`)
+  - *"{{user_deferral_quote}} — no pressure, just letting you know I'm around if you
+  want to talk then."* (deferral reason `user_cue`)
+  These are format illustrations, not memories — never instantiate a placeholder
+  without the recorded deferral to point at.
 - **Second deferral → `deferred-open`.** If the one revisit is also deferred, the engine
   sets `status: deferred-open`. This is behaviorally equivalent to `declined` for outbound
   purposes — no further knocks — but semantically distinct: the door is open, and a later
@@ -292,6 +303,10 @@ its predicate and state writes in `engram-engagement-engine`.
   from the subject, not from the agent.
 - **Cold avoidance naming.** If there is no active warm exchange, the move is delayed, not
   delivered anyway.
+- **Stage-gating the silence.** Handle-with-care probing below `friendly` stage is
+  the graduated-intimacy violation the stage gate exists to prevent — the engine
+  refuses it; the consolidation loop never flags a slot as avoidance-eligible that
+  early.
 - **Interview script creep.** A gap is a question, not a scripted exchange. The repertoire
   turns it into a warm probe.
 - **Lint-only gaps.** If the only source is the linter, the mirror-SOUL skill may be

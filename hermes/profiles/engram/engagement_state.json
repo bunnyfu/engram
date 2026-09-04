@@ -26,6 +26,7 @@
   "passive_mode": false,
   "pending_revisits": [],
   "redaction_cooldown_until": null,
+  "relationship_stage": "unknown",
   "session_active": false,
   "session_agent_turn_count": 1,
   "session_close_mode": null,
@@ -41,6 +42,7 @@
     null
   ],
   "session_wind_down_phase": "open",
+  "stage_history": [],
   "wind_down_close_threshold": 6,
   "wind_down_nudge_threshold": 4
 }

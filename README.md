@@ -77,6 +77,20 @@ constraint contracts (tone, anchor, shape), never scripts. Voice gate applies to
 every mode. Depth is user-led. Any "busy"/silence → metadata-only log, cooldown,
 exponential backoff. **Silence is a first-class outcome, not a failure.**
 
+**Relationship-stage gating (grounding rule):** the engine tracks a relationship
+stage (`unknown|hostile|unfriendly|neutral|friendly|confidant`), derived at
+session wind-down from evidence signals (reciprocity, self-disclosure, warmth;
+ignored or hostile contacts demote — one strong negative signal is enough) and
+logged append-only in `stage_history`. Every mode carries a `min_stage`; a fresh
+subject is `unknown` — cold start: eligible set I/G/D (B only on an explicitly
+user-mentioned event), no history-anchored modes, no past-tense familiarity,
+present-tense curiosity only. Past-tense phrasing is banned below `friendly` and
+always requires a verified anchor (archive artifact, derived-store recall, or
+verbatim prior-session quote) — never fabricated shared history. Gap probes also
+respect pacing: no Mode A/J within the last two agent-initiated contacts, and Mode
+A requires a rapport-peak signal (gaps close at rapport peaks, never on first
+contact).
+
 **Modes:**
 - **A. Curiosity callback** — the original interview engine, demoted to *fallback*:
   one warm, archive-anchored question on a high-priority gap; ≤2 follow-ups.

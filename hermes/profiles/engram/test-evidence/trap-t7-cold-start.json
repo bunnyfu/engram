@@ -1,0 +1,82 @@
+{
+  "timestamp": "2026-09-04T12:00:00+00:00",
+  "arms": [
+    {
+      "arm": "1-fresh-subject",
+      "description": "empty archive, unknown stage, exemplar: none",
+      "assertions": {
+        "select_mode_not_history_anchored": true,
+        "select_mode_returns_I": true,
+        "unknown_eligible_set_respected": true,
+        "ACEFHJ_all_ineligible": true,
+        "B_needs_user_mentioned_event": true,
+        "D_eligible": true,
+        "G_eligible": true
+      },
+      "ok": true
+    },
+    {
+      "arm": "2-stage-gate-hostile",
+      "description": "hostile with verified exemplar + rapport peak",
+      "assertions": {
+        "mode_A_blocked": true,
+        "falls_to_I": true,
+        "reason_is_stage_gate": true
+      },
+      "ok": true
+    },
+    {
+      "arm": "2-stage-gate-unfriendly",
+      "description": "unfriendly with verified exemplar + rapport peak",
+      "assertions": {
+        "mode_A_blocked": true,
+        "falls_to_I": true,
+        "reason_is_stage_gate": true
+      },
+      "ok": true
+    },
+    {
+      "arm": "2-stage-gate-neutral",
+      "description": "neutral with verified exemplar + rapport peak",
+      "assertions": {
+        "mode_A_blocked": true,
+        "falls_to_I": true,
+        "reason_is_stage_gate": true
+      },
+      "ok": true
+    },
+    {
+      "arm": "3-gap-pacing",
+      "description": "friendly + verified exemplar + rapport peak, but recent A contact",
+      "assertions": {
+        "mode_A_blocked": true,
+        "falls_to_I": true,
+        "reason_is_gap_pacing": true
+      },
+      "ok": true
+    },
+    {
+      "arm": "4-anchor-unverified",
+      "description": "friendly + rapport peak + no pressure, exemplar missing from archive",
+      "assertions": {
+        "mode_A_blocked": true,
+        "falls_to_I": true,
+        "reason_is_anchor": true
+      },
+      "ok": true
+    },
+    {
+      "arm": "5-grounded-veteran",
+      "description": "friendly + recent promotion + resolving exemplar + no pressure",
+      "assertions": {
+        "mode_A_selected": true,
+        "gap_carried": true
+      },
+      "ok": true
+    }
+  ],
+  "static_example_violations": [],
+  "structural_clause_errors": [],
+  "passed": true,
+  "errors": []
+}

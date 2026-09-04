@@ -43,7 +43,8 @@ this prompt covers B–H, I, and J.
 1. Log the silence reason:
    - Selector-cron reasons: `silence:no-strong-anchor`, `silence:caps-block`,
      `silence:mode-history-variety`, `silence:voice-gate-failed`,
-     `silence:per-mode-cadence`.
+     `silence:per-mode-cadence`, `silence:stage-gate`, `silence:gap-pacing`,
+     `silence:anchor-unverified`.
    - Conversation-handler cooling-lock suppression: `skipped:cooling-lock`.
 2. No message is sent. No profile wake for contact.
 3. Do not increment `ignored_count` or change `passive_mode`.
@@ -56,6 +57,7 @@ this prompt covers B–H, I, and J.
 1. Invoke the engine's deterministic Mode J eligibility predicate:
    - A skeleton slot with `sensitivity: handle-with-care`, `status: open|partial`,
      `avoidance_named: null`, tier 1 or 2.
+   - Relationship stage ≥ `friendly` (`confidant` preferred; engine stage model).
    - Zero corpus mentions of the slot topic over the configured window.
    - Slot not `declined`, `closed`, `versioned`, or `deferred-open`.
 2. The engine handles all reads/writes to `engagement_state.json` and `gaps.md` for

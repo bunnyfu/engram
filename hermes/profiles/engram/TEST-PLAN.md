@@ -65,10 +65,13 @@ whitelist item still stops the line exactly where the gate sits.
       `last_mode`, `mode_history`, `mode_last_sent` (per-mode cadence map),
       `mode_j_eligible`, `pending_revisits` (Mode J deferral machinery), plus the
       interview fields `last_probe_ts`, `ignored_count`, `passive_mode`,
-      `redaction_cooldown_until`, `last_user_contact_ts`); tooling refuses to wake engram when
+      `redaction_cooldown_until`, `last_user_contact_ts`, and the relationship-stage
+      fields `relationship_stage` (default `unknown`) and append-only `stage_history`;
+      tooling refuses to wake engram when
       ANY single cap condition fails (unit-level evidence per condition: passive_mode,
       cooldown, agent-initiated contact within the past 24h rolling window, active
-      session).
+      session) and gates every candidate mode on stage (`min_stage`) and anchor
+      verification.
 - [ ] Both crons installed with disjoint jitter windows; run log shows ≥1
       `skipped: active session` event handled without either profile waking.
 - [ ] ≥10 engagement sessions and ≥4 interview-probe cycles completed; turn-count diff
@@ -129,6 +132,11 @@ whitelist item still stops the line exactly where the gate sits.
       further knock AND a user-initiated disclosure reopening the slot to
       `partial`/`closed`; ambiguity guard: ambiguous reply classified as
       deflection — no deferral record, no scheduled revisit.
+- [ ] Trap T7 evidence (§E) present and passing — cold-start stage gating (a
+      fresh-subject fixture never yields A/C/E/F/H/J and respects the
+      unknown-stage eligible set), stage gate below `friendly`, gap pacing, anchor
+      verification, the grounded-veteran non-vacuity arm, and the static
+      no-concrete-past-tense-example check over all SKILL.md files and SOUL.md.
 
 ## Steps
 
@@ -305,8 +313,12 @@ interview probe is only one mode; the judge sees the whole repertoire.
 - **Mode-coverage matrix:** rows = the engagement-mode registry (A–I: curiosity
   callback, life-thread follow-up, reminiscence trigger, diary co-pilot, gift/share,
   voice-memo invitation, presence, celebration, silence/no-send; plus **Mode J —
-  naming the silence**, final per nexus routing 2026-08-27); columns = instances
-  exercised, verdicts judged, organic rate, top tells. Every ACTIVE send-mode must be
+  naming the silence**, final per nexus routing 2026-08-27); columns = `min_stage`
+  (relationship-stage minimum per the engine stage model — v10 matrix: A/C/E/F/H
+  `friendly`, B/D/G `neutral` (B on sensitive events `friendly`), J `confidant`
+  preferred / `friendly` hard minimum, I always eligible; at `unknown` the eligible
+  set is I, G, D, B-on-explicit-user-mentioned-event), instances exercised,
+  verdicts judged, organic rate, top tells. Every ACTIVE send-mode must be
   exercised ≥3× per smoke run and appear in the matrix — event-driven modes
   (life-thread, presence, celebration) are exercised via staged event seeds in the
   fixture harness (the same control-file mechanism as §E traps: seed the archive with
@@ -666,6 +678,36 @@ file under `hermes/profiles/engram/test-evidence/`.
 
   Failure of any arm → G4.
 
+- **T7 — cold-start relationship gating + fabricated-familiarity (2026-09-04,
+  anti-hallucination round; armed via synthetic fixture in
+  `tools/validate-trap-t7-cold-start.py`; evidence →
+  `test-evidence/trap-t7-cold-start.json`):** observed defect — smoke-test agent
+  opened fresh conversations with fresh subjects using fabricated familiarity.
+  The trap pins the machinery that prevents it.
+
+  1. **Fresh subject:** empty archive index, `relationship_stage: unknown`, no
+     exemplars — `select_mode` must never return A/C/E/F/H/J and must respect the
+     unknown-stage eligible set (I, G, D; B only on an explicitly user-mentioned
+     event, which an empty archive cannot supply).
+  2. **Stage gate:** at `hostile`/`unfriendly`/`neutral`, Mode A stays blocked even
+     with a verified gap exemplar and a rapport-peak signal (`min_stage: friendly`).
+  3. **Gap pacing:** an A-or-J contact among the last 2 agent-initiated contacts
+     blocks Mode A even at `friendly` with a verified anchor and rapport peak.
+  4. **Anchor verification:** a gap exemplar that does not resolve in the archive
+     blocks Mode A (falls to I) even when stage and pacing pass.
+  5. **Grounded veteran (non-vacuity):** `friendly` + recent `up` promotion in
+     `stage_history` + archive-resolving exemplar + no pressure → Mode A IS
+     selected (the gate opens on evidence, it is not a blanket ban).
+  6. **Static example check:** no SKILL.md (or SOUL.md) example instantiates a
+     concrete past-tense memory without `{{placeholder}}` markers; banned-phrase
+     enumerations must be backticked (mention, not use). Also asserts the
+     structural clauses: SOUL relationship doctrine + never-fake-shared-history
+     boundary + verified-memory precondition, engine stage model fields, repertoire
+     grounding rule + `min_stage` on all ten modes, gap-skeleton stage gate.
+
+  Failure of any arm → G4 (a fabricated-familiarity send is the exact defect this
+  trap exists to pre-empt).
+
 ## F. Honcho install flag (Pi/sysadmin lane)
 
 - Honcho self-host is real and documented (honcho.dev self-hosting docs; GitHub
@@ -804,3 +846,21 @@ file under `hermes/profiles/engram/test-evidence/`.
   skills). DoD: `engagement_state.json` schema gained `mode_j_eligible` +
   `pending_revisits`; T4 criterion rewritten for the three-path trap.
   Workstream closed per nexus.
+- 2026-09-04 planner — v10 per nexus routing (relationship-stage + grounding
+  round; observed defect: fresh conversations with fresh subjects opened with
+  fabricated familiarity — `Hey, remember when you told me…`). Engine gains the
+  relationship stage model (`unknown|hostile|unfriendly|neutral|friendly|confidant`;
+  `relationship_stage` default `unknown` + append-only `stage_history` in
+  `engagement_state.json`; depth permission derived per stage, never stored;
+  derivation at session wind-down from evidence signals, promotion needs cited
+  evidence, demotion fails closed). Pre-wake order gains eligibility checks 6–7
+  (stage gate + anchor verification, fall-through not bail). Gap pacing:
+  `gap_pressure` (A/J in last 2 agent-initiated contacts) blocks A and J; Mode A
+  needs a rapport-peak signal. Repertoire gains the shared grounding rule
+  (past-tense phrasing banned below `friendly`; verified-anchor-only above), a
+  `min_stage` field on every mode, and all examples parameterized to
+  `{{placeholders}}`. Gap-skeleton stage-gates handle-with-care slots and Mode J
+  at `friendly`+ (confidant preferred). SOUL gains the relationship doctrine and
+  never-fake-shared-history boundary, retires the concrete Duty-3 example, and
+  renames `interview_state.json` → `engagement_state.json`. New trap T7 (§E) +
+  §B.6 matrix `min_stage` column + DoD stage-field/T7 criteria.

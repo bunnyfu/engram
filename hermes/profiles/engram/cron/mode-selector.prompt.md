@@ -22,7 +22,13 @@
    - If found: set `last_user_contact_ts = now`, `ignored_count = 0`, `passive_mode = false`,
      persist `engagement_state.json`.
    - The engine also updates session budget and wind-down phase fields.
-2. Run the five cap checks in order.
+2. Run the cap checks in order (1–5 from the engine skill; a failure logs
+   `skipped:<reason>` and exits). Then apply the eligibility gates 6–7 — stage
+   gate (`min_stage` per mode vs `relationship_stage`; at `unknown` only the
+   cold-start set I/G/D/B-on-explicit-user-mentioned-event) and anchor
+   verification (gaps.md exemplar / archive-index / recorded derived-store
+   recall hit). Gate failures fall through to a lower mode or Mode I — they never
+   bail the fire and never authorize an unverified send.
 3. If any cap check fails: log `skipped:<reason>` and exit.
 4. Evaluate event-driven mode triggers (B, H, G) using the archive and `USER.md`.
    - Event-driven triggers bypass `mode_history` variety.

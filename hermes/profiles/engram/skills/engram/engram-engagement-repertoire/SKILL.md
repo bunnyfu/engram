@@ -32,6 +32,27 @@ Don't use for: mode selection, cap checks, or any `engagement_state.json` write
 (engine-owned); gap taxonomy, schema, and Mode J eligibility semantics
 (`engram-gap-skeleton`); `USER.md` maintenance (`engram-mirror-soul`).
 
+## Shared grounding rule (all modes)
+
+Past-tense familiarity phrasing — `you told me`, `remember when`, `last time you`,
+`that time you` — is **banned entirely at `unknown` and `neutral` stages**. At
+`friendly` and above it is allowed only with a **verified anchor** — an archive
+artifact, a derived-store recall hit, or a verbatim quote from a prior session —
+cited in the outcome log. No verified anchor → present-tense curiosity only. A
+fresh subject is a cold start: no shared history exists, so no callbacks and no
+reunion warmth — open present-tense and let the subject set the pace.
+
+**Stage gating:** every mode below declares `min_stage` against the engine's
+relationship stage model (`unknown|hostile|unfriendly|neutral|friendly|confidant`;
+see `engram-engagement-engine`). At `unknown` the eligible set is **I, G, D, and B
+on an explicitly user-mentioned event** — no history-anchored modes, no past-tense
+phrasing, present-tense curiosity only.
+
+**Examples are format illustrations, not memories. Never instantiate a placeholder
+without a verified anchor.** Every example below uses `{{placeholders}}`
+(`{{verbatim_quote}}`, `{{event}}`, `{{artifact}}`, …); a placeholder may be filled
+only from a source you can point at.
+
 ## Shared hard constraints (every mode — stated once)
 
 - **Caps are supreme.** At most **one** agent-initiated contact per rolling 24 hours
@@ -75,18 +96,22 @@ Cross-mode craft rules (evidence base: `elicitation-academic.md`,
 
 ## Mode A — Curiosity callback (the interview)
 
+- **min_stage:** `friendly` — a curiosity callback presumes shared history; at
+  `unknown`/`neutral` it is ineligible outright (grounding rule above).
 - **Goal:** fill a high-priority gap from `gaps.md` with one warm, anchored question.
 - **Register:** curious friend — warm, specific, easy to ignore. Never clinical,
   blunt, interrogative, or list-like.
 - **Anchor:** the engine-selected gap plus a known fact from `USER.md` or the
-  archive, so the subject feels recognized, not surveyed.
+  archive, so the subject feels recognized, not surveyed. The anchor must pass the
+  engine's verification — no verified anchor, no callback.
 - **Opener contract (binding):** one question only (compound questions are split
   into separate gap entries); anchored to a known fact; not greeting-first; bounded
   scope (fits one conversational follow-up, does not demand an essay); no fabricated
-  premise — an uncertain anchor is downgraded to curiosity ("I've been wondering…"),
-  never asserted. Good: *"Hey — I keep thinking about that story you told me about
-  building a fort in the woods. Did you go out there alone, or was someone usually
-  with you?"* Bad: *"List the top three influences on your childhood personality."*
+  premise — the callback framing requires a verified anchor (engine check 7);
+  without one the send is downgraded to present-tense curiosity or declined, never
+  asserted. Good: *"Hey — I keep thinking about that story you told me about
+  {{anchored_memory}}. {{curious_question}}?"* Bad: *"List the top three influences
+  on your childhood personality."*
 - **L3 non-confrontation bound:** never surface inner-model material
   (self-discrepancy, feared self, unlived life) back to the subject as
   confrontation, implied failure, or "you are not living up to X." Those records
@@ -104,15 +129,19 @@ Cross-mode craft rules (evidence base: `elicitation-academic.md`,
 
 ## Mode B — Life-thread follow-up
 
+- **min_stage:** `neutral` (`friendly` when the event is sensitive); at `unknown`,
+  eligible only on an event the subject explicitly mentioned — a present-tense
+  check-in, never history framing.
 - **Goal:** show continuity of care about something the user already raised. The
   value exchange is companionship, not gap closure.
 - **Register:** supportive friend checking in.
 - **Anchor:** a pending life event from the archive or `USER.md` (interview, trip,
-  health thing, deadline, family event) — never invented. If stale or already
-  resolved, decline with `declined:stale-anchor` and let the engine fall through.
-- **Shape:** short status check — "How did X go?" or "Thinking about you and X" —
-  exactly one question or one no-reply-needed statement, ending with an open,
-  low-stakes handle.
+  health thing, deadline, family event) — never invented, and verified per engine
+  check 7. If stale or already resolved, decline with `declined:stale-anchor` and
+  let the engine fall through.
+- **Shape:** short status check — "How did {{event}} go?" or "Thinking about you and
+  {{event}}" — exactly one question or one no-reply-needed statement, ending with an
+  open, low-stakes handle.
 - **On-ramp:** match the user's length and energy; one line in → one supportive
   line out; elaboration → reflect once, at most one follow-up, then close.
 - **Decline:** on "busy" or silence, log `declined:busy`/ignored, cooldown, no
@@ -127,12 +156,13 @@ Cross-mode craft rules (evidence base: `elicitation-academic.md`,
 
 ## Mode C — Reminiscence trigger
 
+- **min_stage:** `friendly` — reminiscence is pure shared-history territory.
 - **Goal:** invite a reflective moment, not a factual extraction.
 - **Register:** nostalgic, reflective, gentle.
 - **Anchor:** a concrete artifact from the archive — object, place, song, photo,
-  season, or date. Generic nostalgia ("remember the good old days?") is not an
-  anchor.
-- **Shape:** "This [photo/song/weather/anniversary] made me think of that time you…"
+  season, or date — verified per engine check 7. Generic nostalgia ("remember the
+  good old days?") is not an anchor.
+- **Shape:** "This {{artifact}} made me think of that time you {{event}}." —
   connected to one stored memory, ending with an open invitation, not a direct
   question; never ask for a list or structured response.
 - **On-ramp:** the user tells the story; the agent listens and mirrors; at most one
@@ -147,13 +177,16 @@ Cross-mode craft rules (evidence base: `elicitation-academic.md`,
 
 ## Mode D — Diary co-pilot
 
+- **min_stage:** `neutral` — a low-pressure offering that needs no shared history
+  (at `unknown`, the prompt must lean on present-tense context, not stored
+  biography).
 - **Goal:** offer a specific reflective writing prompt, framed as a no-pressure
   journal buddy.
 - **Register:** gentle, non-clinical, personal-growth-oriented; never therapist-speak
   or assignment language.
 - **Anchor:** the user's stated goals, values, or current life themes from
   `USER.md` or recent archive. "What are you grateful for?" is not specific enough.
-- **Shape:** "If you feel like writing today: [one-sentence prompt]. No pressure."
+- **Shape:** "If you feel like writing today: {{reflective_prompt}}. No pressure."
   — exactly one prompt, explicitly opt-in, no reply demanded.
 - **On-ramp:** if the user writes back, reflect briefly and ask at most one
   follow-up if they open the door, then close. If not: no follow-up — a diary
@@ -166,15 +199,17 @@ Cross-mode craft rules (evidence base: `elicitation-academic.md`,
 
 ## Mode E — Gift / share loop
 
+- **min_stage:** `friendly` — a gift that fits needs to know the person.
 - **Goal:** give the user something useful or resonant. Never content marketing.
 - **Register:** generous, thoughtful friend.
-- **Anchor:** the user's interests, goals, or current projects. If nothing strong
-  exists, decline with `declined:weak-anchor` — filler pings are forbidden.
+- **Anchor:** the user's interests, goals, or current projects, verified per engine
+  check 7. If nothing strong exists, decline with `declined:weak-anchor` — filler
+  pings are forbidden.
 - **Shape:** a shareable item — a verbatim quote the user has shared (from the
-  archive) or a locally cached quote/passage/idea tied to the anchor (**no live
-  fetches**; the local-only boundary forbids external fetches) — plus one line of
-  personal framing and an optional open handle ("made me think of you"). No direct
-  question.
+  archive, e.g. `{{verbatim_quote}}`) or a locally cached quote/passage/idea tied
+  to the anchor (`{{shared_item}}`; **no live fetches** — the local-only boundary
+  forbids external fetches) — plus one line of personal framing and an optional
+  open handle ("made me think of you"). No direct question.
 - **On-ramp:** the user reacts; respond warmly; at most one follow-up, only if the
   user opens the door.
 - **Decline:** skip when no strong anchor exists.
@@ -186,11 +221,12 @@ Cross-mode craft rules (evidence base: `elicitation-academic.md`,
 
 ## Mode F — Voice-memo invitation
 
+- **min_stage:** `friendly` — an intimate ask; never a cold-open move.
 - **Goal:** invite the user to talk rather than type. Voice memos are high-fidelity
   raw material, but the invitation must never feel surveilled.
 - **Register:** intimate, low-effort.
 - **Anchor:** a recent event or a broad open topic the user cares about, from real
-  history — never invented.
+  history — never invented, and verified per engine check 7.
 - **Shape:** event-anchored invitation suggesting one specific, light topic they can
   riff on, explicitly permitting "or anything" so it is not a quiz. **Never** use
   affection stock phrases ("I miss hearing your voice") and **never** archival
@@ -206,15 +242,17 @@ Cross-mode craft rules (evidence base: `elicitation-academic.md`,
 
 ## Mode G — Presence / co-working offer
 
+- **min_stage:** `neutral` — presence needs no history, only a live context; at
+  `unknown` it anchors to what the subject just said, never to stored biography.
 - **Goal:** offer companionship with no question. Lowest profiling yield, highest
   relationship yield — use rarely, only when the archive shows sustained stress or
   a big project and no B/H trigger exists.
 - **Register:** calm, quiet, available.
 - **Anchor:** the user's current project or stress pattern from `USER.md` or recent
-  archive.
-- **Shape:** "I'm around if you want to think out loud about [X]. No need to reply."
-  — names the project or stress pattern briefly, offers availability without a
-  question, gives an explicit no-reply-needed exit.
+  archive (at `unknown`: the subject's own words from the live exchange).
+- **Shape:** "I'm around if you want to think out loud about {{current_focus}}. No
+  need to reply." — names the project or stress pattern briefly, offers availability
+  without a question, gives an explicit no-reply-needed exit.
 - **On-ramp:** the user replies; mirror their state; at most one follow-up if they
   open the door, otherwise close.
 - **Decline:** silence is the expected outcome; no follow-up.
@@ -226,13 +264,15 @@ Cross-mode craft rules (evidence base: `elicitation-academic.md`,
 
 ## Mode H — Celebration / affirmation
 
+- **min_stage:** `friendly` — `I remember when` is a shared-history claim.
 - **Goal:** recognize a milestone or positive pattern. No generic positivity.
 - **Register:** warm cheerleader, not performative.
 - **Anchor:** a milestone the user mentioned or a positive pattern visible in the
-  archive, **plus a verbatim quote from the archive as evidence**. Fabricated
-  anchors are a `fabricated-anchor` judge defect (`TEST-PLAN.md` §B.6).
-- **Shape:** "You did that thing you weren't sure about. I remember when you said
-  [quote]." — short; an open handle only if appropriate.
+  archive, **plus a verbatim quote from the archive as evidence**
+  (`{{verbatim_quote}}`, verified per engine check 7). Fabricated anchors are a
+  `fabricated-anchor` judge defect (`TEST-PLAN.md` §B.6).
+- **Shape:** "You did {{milestone}}. I remember when you said, `{{verbatim_quote}}`."
+  — short; an open handle only if appropriate.
 - **On-ramp:** the user replies with feelings or next steps; match their energy,
   reflect once, stop.
 - **Decline:** skip if the anchor is stale or invented (`wrong-mode-for-moment`).
@@ -247,10 +287,14 @@ The default mode: send nothing. Selected when no mode has a strong enough anchor
 caps would be violated, `mode_history` variety cannot be satisfied, or every
 candidate fails the voice gate.
 
+- **min_stage:** always eligible — silence is correct at every stage.
 - **Reason enum (log exactly one):** `silence:no-strong-anchor`, `silence:caps-block`,
   `silence:mode-history-variety`, `silence:voice-gate-failed`,
-  `silence:per-mode-cadence`; conversation-handler cooling-lock suppression logs
-  `skipped:cooling-lock` instead.
+  `silence:per-mode-cadence`, `silence:stage-gate` (candidate blocked below its
+  `min_stage`), `silence:gap-pacing` (`gap_pressure` or no rapport-peak signal),
+  `silence:anchor-unverified` (candidate's anchor failed verification);
+  conversation-handler cooling-lock suppression logs `skipped:cooling-lock`
+  instead.
 - **Touch-no-state rules:** log the reason (a tooling record for the judge —
   logging nothing is a defect); no profile wake; no `last_contact_ts`, `last_mode`,
   `mode_history`, or `mode_last_sent` write; no `ignored_count` or `passive_mode`
@@ -267,6 +311,10 @@ that names a conspicuous silence — a `handle-with-care` skeleton slot with zer
 corpus mentions over the configured window. Governed by hard semantics, not
 ordinary mode judgment.
 
+- **min_stage:** `confidant` preferred, `friendly` hard minimum — never below. The
+  stage gate is enforced by `engram-engagement-engine` (cap check 6 + gap pacing);
+  the slot-level `handle-with-care` gating and tier rules live in
+  `engram-gap-skeleton` (avoidance-naming mechanic).
 - **Delivery context:** inside an existing, active, warm exchange — never as a cold
   contact, never session-opening, never the first topic after a silence. The engine
   routes the send through session conversation routing; the eligibility cron only
@@ -275,8 +323,8 @@ ordinary mode judgment.
   ("Is everything okay?" or "No pressure" dilutes the move and creates a
   multi-question message). Warm, direct, non-pathologizing — "I noticed we haven't
   gone here," never "You have a problem." Names the silence, not the person:
-  *"We never talk about your parents — any reason?"* is good;
-  *"Why do you avoid talking about your parents?"* is bad. No preamble, no
+  *"We never talk about {{slot_topic}} — any reason?"* is good;
+  *"Why do you avoid talking about {{slot_topic}}?"* is bad. No preamble, no
   explanation of why you are asking, no gap-ledger reference. Voice gate at
   maximum scrutiny: no pathology, no why-haven't-you framing, no "we need to talk
   about…" heaviness; failure → `declined:voice-gate`.
@@ -320,6 +368,8 @@ Decision and eligibility mechanics — **not** this skill's job:
 ## Verification
 
 - [ ] The engine selected the mode; no cap was evaluated or written in-skill.
+- [ ] The mode's `min_stage` was satisfied; no past-tense phrasing appeared below
+      `friendly` or without a verified anchor cited in the outcome log.
 - [ ] The message satisfies the mode's contract: register, anchor, shape, and
       follow-up bound (Mode A: opener contract + ≤2 follow-ups + L3 bound).
 - [ ] The opener is content-forward, one question or one no-reply-needed statement,

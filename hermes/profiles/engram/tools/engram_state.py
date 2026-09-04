@@ -39,6 +39,39 @@ DEFAULT_THRESHOLDS = {
     "max_ignored_count": 3,
 }
 
+# Relationship stage model (engine-owned; see engram-engagement-engine SKILL).
+# `unknown` is the cold start: no verified subject data — depth-permission-zero.
+# It is deliberately absent from STAGE_RANK so every ordinal comparison fails.
+STAGE_ORDER = ["hostile", "unfriendly", "neutral", "friendly", "confidant"]
+STAGE_RANK = {s: i for i, s in enumerate(STAGE_ORDER)}
+
+# Per-mode minimum relationship stage (the repertoire's min_stage matrix).
+MODE_MIN_STAGE = {
+    "A": "friendly",
+    "B": "neutral",   # sensitive events require friendly (prose contract)
+    "C": "friendly",
+    "D": "neutral",
+    "E": "friendly",
+    "F": "friendly",
+    "G": "neutral",
+    "H": "friendly",
+    "I": "unknown",   # silence is always eligible
+    "J": "friendly",  # confidant preferred; friendly is the hard minimum
+}
+
+# At `unknown` (cold start) the eligible set is I, G, D, and B on an explicitly
+# user-mentioned event. B's exception needs an anchor the subject just supplied;
+# the deterministic proxy is a subject artifact in the archive index.
+UNKNOWN_STAGE_ELIGIBLE = {"I", "G", "D", "B"}
+
+# Gap pacing: an A-or-J contact among the last N agent-initiated contacts
+# (mode_history) blocks Mode A (and J).
+GAP_PACING_WINDOW = 2
+# A stage promotion in stage_history counts as a rapport-peak signal for this
+# many days. (A recent self-disclosure event also qualifies but is procedural —
+# see the engine's prose-vs-tooling divergences.)
+RAPPORT_PEAK_WINDOW_DAYS = 7
+
 
 def now_utc() -> datetime:
     return datetime.now(timezone.utc)
@@ -72,6 +105,11 @@ def ensure_state() -> dict[str, Any]:
     """Initialize engagement_state.json if missing and return it."""
     state = load_state()
     if state:
+        # Backfill stage fields on states written before the stage model landed.
+        if "relationship_stage" not in state or "stage_history" not in state:
+            state.setdefault("relationship_stage", "unknown")
+            state.setdefault("stage_history", [])
+            save_state(state)
         return state
     state = initial_state()
     save_state(state)
@@ -109,6 +147,8 @@ def initial_state() -> dict[str, Any]:
             "session_recency_threshold_seconds"
         ],
         "contact_window_hours": DEFAULT_THRESHOLDS["contact_window_hours"],
+        "relationship_stage": "unknown",
+        "stage_history": [],
     }
 
 
@@ -374,6 +414,95 @@ def load_gaps() -> list[dict[str, Any]]:
     return entries
 
 
+def gap_pressure_active(state: dict[str, Any]) -> bool:
+    """Gap pacing: an A-or-J contact among the last GAP_PACING_WINDOW
+    agent-initiated contacts (mode_history) blocks Mode A (and J)."""
+    recent = (state.get("mode_history") or [])[-GAP_PACING_WINDOW:]
+    return any(m in ("A", "J") for m in recent)
+
+
+def has_rapport_peak(state: dict[str, Any], now: datetime | None = None) -> bool:
+    """Rapport-peak signal for Mode A: a stage promotion (`direction: up`) in
+    `stage_history` within RAPPORT_PEAK_WINDOW_DAYS. A recent self-disclosure
+    event also qualifies by prose but is procedural — not recorded in state."""
+    if now is None:
+        now = now_utc()
+    for entry in state.get("stage_history") or []:
+        if entry.get("direction") != "up":
+            continue
+        ts = parse_iso(entry.get("ts"))
+        if ts is not None and (now - ts).days <= RAPPORT_PEAK_WINDOW_DAYS:
+            return True
+    return False
+
+
+def verify_anchor(ref: Any) -> dict[str, Any]:
+    """Deterministic anchor verification (engine cap check 7): the exemplar /
+    archive-index existence check on disk. Derived-store recall hits cannot be
+    checked here — they are recorded procedurally at wind-down."""
+    if ref is None:
+        return {"verified": False, "via": None, "ref": ref}
+    ref = str(ref).strip()
+    if ref.lower() in ("", "none", "null"):
+        return {"verified": False, "via": None, "ref": ref}
+    idx = load_archive_index()
+    for artifact in idx:
+        if artifact.get("id") == ref:
+            return {"verified": True, "via": "archive-index", "ref": ref}
+    if ARCHIVE_INDEX.exists():
+        for line in ARCHIVE_INDEX.read_text().splitlines():
+            if ref in line:
+                return {"verified": True, "via": "archive-index", "ref": ref}
+    return {"verified": False, "via": None, "ref": ref}
+
+
+def mode_eligibility(
+    mode: str,
+    state: dict[str, Any],
+    anchor_ref: Any = None,
+    now: datetime | None = None,
+) -> dict[str, Any]:
+    """Eligibility gates for one candidate mode: stage gate (cap check 6), gap
+    pacing, rapport peak, and anchor verification (cap check 7). Checks 1–5 are
+    cap_checks(); these narrow selection with fall-through, never a bail."""
+    if now is None:
+        now = now_utc()
+    stage = state.get("relationship_stage") or "unknown"
+    reasons: list[str] = []
+
+    # Stage gate.
+    if mode == "I":
+        pass  # always eligible
+    elif stage not in STAGE_RANK:
+        # unknown / cold start
+        if mode in ("G", "D"):
+            pass
+        elif mode == "B":
+            # Explicit user-mentioned event: deterministic proxy = a subject
+            # artifact exists in the archive index to anchor the check-in.
+            if not any(a.get("sender") == "subject" for a in load_archive_index()):
+                reasons.append("stage_gate:B_unknown_needs_user_mentioned_event")
+        else:
+            reasons.append(f"stage_gate:{mode}_min_{MODE_MIN_STAGE[mode]}_but_unknown")
+    elif STAGE_RANK[stage] < STAGE_RANK[MODE_MIN_STAGE[mode]]:
+        reasons.append(f"stage_gate:{mode}_min_{MODE_MIN_STAGE[mode]}_at_{stage}")
+
+    # Gap pacing (Mode A and Mode J).
+    if mode in ("A", "J") and gap_pressure_active(state):
+        reasons.append("gap_pressure")
+
+    # Rapport-peak signal (Mode A).
+    if mode == "A" and not has_rapport_peak(state, now):
+        reasons.append("no_rapport_peak")
+
+    # Anchor verification (deterministic part only).
+    if anchor_ref is not None:
+        if not verify_anchor(anchor_ref)["verified"]:
+            reasons.append("anchor_unverified")
+
+    return {"mode": mode, "stage": stage, "eligible": not reasons, "reasons": reasons}
+
+
 def select_mode(state: dict[str, Any]) -> dict[str, Any]:
     """Deterministic mode selection. Returns decision dict."""
     now = now_utc()
@@ -381,15 +510,36 @@ def select_mode(state: dict[str, Any]) -> dict[str, Any]:
     if not passed:
         return {"mode": "I", "reason": f"cap:{reason}", "stop": True}
 
-    # Event-driven modes: for now, no event seeds in archive -> skip.
-    # Relationship modes: require USER.md anchors and cadence; for Phase 1 kickoff,
-    # only Mode A is reachable from a high-priority gap.
-    gaps = load_gaps()
-    high_priority = [g for g in gaps if g.get("priority", "").lower() == "high" and g.get("status", "open").lower() == "open"]
-    if high_priority:
-        return {"mode": "A", "reason": "high_priority_gap", "stop": False, "selected_gap": high_priority[0]}
+    stage = state.get("relationship_stage") or "unknown"
 
-    return {"mode": "I", "reason": "no_strong_anchor", "stop": True}
+    # Event-driven modes (B/H/G): no event seeds in archive yet -> skip (engine
+    # divergence list). Relationship modes (C/F/D/E) need anchor scoring that is
+    # not implemented yet; Phase 1 reaches only Mode A from the gap ledger.
+    gaps = load_gaps()
+    blocked_reason: str | None = None
+    for gap in gaps:
+        if str(gap.get("status", "open")).lower() not in ("open", "partial"):
+            continue
+        eligibility = mode_eligibility(
+            "A", state, anchor_ref=gap.get("exemplar"), now=now
+        )
+        if eligibility["eligible"]:
+            return {
+                "mode": "A",
+                "reason": "verified_gap_anchor",
+                "stop": False,
+                "selected_gap": gap,
+                "relationship_stage": stage,
+            }
+        if blocked_reason is None and eligibility["reasons"]:
+            blocked_reason = eligibility["reasons"][0]
+
+    return {
+        "mode": "I",
+        "reason": blocked_reason or "no_strong_anchor",
+        "stop": True,
+        "relationship_stage": stage,
+    }
 
 
 def record_send(mode: str, phase: str | None = None, gap_id: str | None = None) -> dict[str, Any]:
@@ -455,6 +605,33 @@ def record_outcome(outcome: str, mode: str, phase: str | None = None, gap_id: st
         save_state(state)
         return state
     return load_state()
+
+
+def record_stage_transition(target_stage: str, direction: str, evidence_ref: str) -> dict[str, Any]:
+    """Append a relationship-stage transition (engine-owned, session wind-down).
+
+    Promotion requires cited evidence (verbatim quote or artifact reference);
+    demotion fails closed on one strong negative signal. The wind-down step
+    supplies the signal reading; this helper is the deterministic append-only
+    write. `direction` is `up` or `down`.
+    """
+    if target_stage not in STAGE_ORDER:
+        raise ValueError(f"invalid stage: {target_stage!r} (enum: {STAGE_ORDER})")
+    if direction not in ("up", "down"):
+        raise ValueError(f"invalid direction: {direction!r}")
+    state = load_state()
+    entry = {
+        "stage": target_stage,
+        "ts": iso(now_utc()),
+        "direction": direction,
+        "evidence_ref": evidence_ref,
+    }
+    history = state.get("stage_history") or []
+    history.append(entry)  # append-only: never rewritten, never truncated
+    state["stage_history"] = history
+    state["relationship_stage"] = target_stage
+    save_state(state)
+    return state
 
 
 def set_mode_j_eligible(slot_id: str | None) -> dict[str, Any]:
