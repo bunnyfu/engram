@@ -159,7 +159,7 @@ Mode I otherwise.
    mirror-SOUL are durable Hermes skills (forge-authored) with explicit mechanics:
    schemas, file ownership, lifecycle (how gaps are identified, where tracked, how
    ticked off). Crons inject skills explicitly; cron prompts are tunable artifacts —
-   drafted, saved to disk, git-tracked under `fleet/engram/cron/`.
+   drafted, saved to disk, git-tracked under `hermes/profiles/engram/cron/`.
 4. **USER.md is a first-class tested layer.** Its structure, ownership, and update
    mechanics are declared in a dedicated Hermes skill referenced from the Engram
    SOUL; tests cover it at parity with the Hindsight backend.

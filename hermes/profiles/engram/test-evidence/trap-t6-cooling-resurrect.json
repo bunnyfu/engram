@@ -1,0 +1,19 @@
+{
+  "timestamp": "2026-08-28T12:00:00+00:00",
+  "steps": [
+    {
+      "step": 1,
+      "description": "subject artifact in same thread while cooling lock active",
+      "summary_actions": [
+        "subject_contact_disarm",
+        "skipped_cooling_lock_same_thread"
+      ],
+      "session_active_before": false,
+      "session_active_after": false,
+      "cooling_until_after": "2026-08-28T12:30:00+00:00",
+      "session_wind_down_phase_after": "cooling"
+    }
+  ],
+  "passed": true,
+  "errors": []
+}

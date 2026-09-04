@@ -1,0 +1,46 @@
+{
+  "contact_window_hours": 24,
+  "cooling_until": null,
+  "cooling_window_minutes": 30,
+  "ignored_count": 0,
+  "last_contact_ts": "2026-08-28T23:56:01Z",
+  "last_mode": "A",
+  "last_probe_ts": "2026-08-28T23:56:01Z",
+  "last_user_contact_ts": null,
+  "mode_history": [
+    "A"
+  ],
+  "mode_j_eligible": null,
+  "mode_last_sent": {
+    "A": "2026-08-28T23:56:01Z",
+    "B": null,
+    "C": null,
+    "D": null,
+    "E": null,
+    "F": null,
+    "G": null,
+    "H": null,
+    "I": null,
+    "J": null
+  },
+  "passive_mode": false,
+  "pending_revisits": [],
+  "redaction_cooldown_until": null,
+  "session_active": false,
+  "session_agent_turn_count": 1,
+  "session_close_mode": null,
+  "session_close_sent_at": null,
+  "session_exchange_count": 1,
+  "session_last_agent_mode": "A",
+  "session_opened_at": "2026-08-28T23:56:01Z",
+  "session_opened_by": "agent",
+  "session_recency_threshold_seconds": 900,
+  "session_thread_id": [
+    "mattermost",
+    "11q5an3haffxfpo6kfradxp75y",
+    null
+  ],
+  "session_wind_down_phase": "open",
+  "wind_down_close_threshold": 6,
+  "wind_down_nudge_threshold": 4
+}

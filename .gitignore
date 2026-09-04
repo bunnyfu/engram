@@ -23,3 +23,8 @@ fleet-unlock.rtf
 
 # Local backups (hindsight bank dumps — memory data, keep off GitHub)
 backups/
+
+# Engram runtime outputs from deterministic directors / actuators
+hermes/profiles/engram/cron_decision.json
+hermes/profiles/engram/cron_output/
+hermes/profiles/engram/tools/__pycache__/

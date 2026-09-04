@@ -8,7 +8,7 @@ platforms: [linux, macos, windows]
 metadata:
   hermes:
     tags: [engram, mirror-soul, user-md, exemplar, consolidation]
-    related_skills: [engram-gap-ledger, engram-interview]
+    related_skills: [engram-gap-skeleton, engram-engagement-repertoire]
 ---
 
 # Engram Mirror-SOUL Skill
@@ -26,7 +26,7 @@ archive or an explicit synthesis that lists the supporting quotes and the infere
   anchors where appropriate.
 
 Don't use for: raw archive capture (do that first), or interview probes (use the
-interview skill).
+engagement repertoire).
 
 ## Section structure
 

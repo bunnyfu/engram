@@ -1,0 +1,51 @@
+{
+  "timestamp": "2026-08-28T12:00:00+00:00",
+  "steps": [
+    {
+      "step": 1,
+      "description": "closing beat fires; engine writes cooling lock",
+      "state_after": {
+        "session_wind_down_phase": "cooling",
+        "cooling_until": "2026-08-28T12:30:00+00:00",
+        "session_close_mode": "C",
+        "session_close_sent_at": "2026-08-28T12:00:00+00:00"
+      },
+      "assertions": {
+        "phase_is_cooling": true,
+        "cooling_until_set": true,
+        "close_mode_matches": true,
+        "mode_last_sent_updated": true
+      }
+    },
+    {
+      "step": 2,
+      "description": "selector cap check 5 before cooling_until expiry",
+      "ts": "2026-08-28T12:15:00+00:00",
+      "cap5_passes": false,
+      "expected": false
+    },
+    {
+      "step": 3,
+      "description": "conversation handler before cooling_until expiry",
+      "ts": "2026-08-28T12:15:00+00:00",
+      "handler_suppressed": true,
+      "expected": true
+    },
+    {
+      "step": 4,
+      "description": "selector cap check 5 after cooling_until expiry",
+      "ts": "2026-08-28T12:31:00+00:00",
+      "cap5_passes": true,
+      "expected": true
+    },
+    {
+      "step": 5,
+      "description": "break-test: lock disabled/reset early",
+      "handler_suppressed": false,
+      "selector_cap5_failed": false,
+      "expected_both_false": true
+    }
+  ],
+  "passed": true,
+  "errors": []
+}

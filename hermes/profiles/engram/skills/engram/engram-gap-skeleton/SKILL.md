@@ -1,28 +1,34 @@
 ---
 name: engram-gap-skeleton
 description: "Engram gap taxonomy, schema, and avoidance-naming mechanic."
-version: 0.1.0
+version: 1.0.0
 author: Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
   hermes:
     tags: [engram, gap-skeleton, taxonomy, ledger, avoidance]
-    related_skills: [engram-gap-ledger, engram-interview, engram-mode-selector, engram-mirror-soul]
+    related_skills: [engram-engagement-repertoire, engram-engagement-engine, engram-mirror-soul]
 ---
 
 # Engram Gap Skeleton Skill
 
-Define the a-priori gap taxonomy, the ledger entry schema, and the special
-avoidance-naming mechanic. The skeleton exists before any discovered gaps;
-consolidation annotates discovered gaps on top of it and runs the consolidation
-loop that owns all writes.
+Define the a-priori gap taxonomy, the canonical ledger entry schema, the write-side
+ledger lifecycle, and the special avoidance-naming mechanic. The skeleton exists
+before any discovered gaps; consolidation annotates discovered gaps on top of it and
+runs the consolidation loop that owns all writes. This skill absorbs the former
+`engram-gap-ledger` (its `open|probed|filled` schema and its write-side duties);
+that schema is retired — every entry uses the schema below.
+
+A gap is anything the peer model or `USER.md` needs but the raw archive does not yet
+support with confidence.
 
 ## When to Use
 
-- During consolidation: classify a discovered gap by layer, tier, closability, and feeds.
+- During consolidation: classify a discovered gap by layer, tier, closability, and
+  feeds; create, merge, or update slot annotations (write side below).
 - Before selecting an engagement mode: compute which skeleton/discovered slots are
-top-candidate probes.
+  top-candidate probes.
 - After an interview or engagement: update slot status, exemplar, and last-touched.
 
 Don't use for: raw capture (use the archive), or memory-model updates (use Hindsight +
@@ -61,8 +67,8 @@ feeds: both                       # companion | likeness | both
 source: skeleton                  # skeleton | discovered:<ref> | contradiction:<ref>
 sensitivity: handle-with-care     # normal | handle-with-care
 exemplar: none                    # <archive-ref> | none
-avoidance_named: null             # <timestamp> | null; set-once by state-accounting
-deferral: null                     # see Deferral state; written by state-accounting
+avoidance_named: null             # <timestamp> | null; set-once by the engine
+deferral: null                     # see Deferral state; written by the engine
 last_touched: 2026-08-27T12:00:00Z
 decay_after: 2026-09-03T12:00:00Z  # recency window for priority; extend on every attempt
 ```
@@ -89,10 +95,10 @@ Field semantics:
   failure, self-discrepancy, and any slot the consolidation loop flags as risky.
 - `exemplar`: archive artifact reference that grounds the gap; `none` until the first
   relevant quote exists.
-- `avoidance_named`: `null` until state-accounting records the one-and-only Mode J probe
+- `avoidance_named`: `null` until the engine records the one-and-only Mode J probe
   for this slot. Set-once; never nullified. A non-null value makes the slot permanently
   ineligible for Mode J.
-- `deferral`: `null` until a deferral outcome. Written by state-accounting. Contains
+- `deferral`: `null` until a deferral outcome. Written by the engine. Contains
   `count`, `last_deferred_at`, `reason` (`long_story|wrong_moment|user_cue`), `user_cue`,
   `revisit_after`, `revisit_channel` (`F|D|G`), and `revisit_sent_at`. Count caps at 2.
 
@@ -122,13 +128,63 @@ Result is sorted descending. Tier-3 slots stay at priority 0 unless the trust ga
 2. **Discovered gaps annotate slots.** A `discovered:<ref>` entry adds a specific question
    to a slot, raises priority, changes closability, or flags sensitivity.
 3. **Consolidation loop owns writes.** Only the consolidation loop may create, update, or
-   merge entries. Interview/engagement skills may append `attempt` notes but may not edit
+   merge entries. Engagement skills may append `attempt` notes but may not edit
    the main entry.
-4. **Merge rule.** A discovered question maps to the same `slot` and asks substantively the
-   same thing as an existing skeleton/discovered entry → merge, keeping the higher tier,
+4. **Merge rule.** A discovered question maps to the same `slot` and asks substantively
+   the same thing as an existing skeleton/discovered entry → merge, keeping the higher tier,
    stronger sensitivity, and appending the new source reference.
 5. **No silent deletion.** Skeleton slots are never deleted; they transition through the
    status enum. A slot with `status: declined` is preserved forever as a consent record.
+
+## Write side (consolidation loop; absorbs the gap ledger)
+
+**Gap sources** — a gap originates from one of these triggers, recorded in `source`:
+
+1. **Consolidation pass** (`discovered:consolidation`): a new claim in `USER.md` lacks
+   enough exemplars to anchor it; the loop opens a gap asking for more evidence.
+2. **Hindsight peer-model drift** (`discovered:hindsight`): the peer model holds a
+   belief, preference, or relationship assertion with low confidence or conflicting
+   evidence; the store points to the unresolved question.
+3. **`USER.md` claim-contract lint** (`discovered:lint`): a claim has no verbatim quote
+   and no `[synthesis: <artifact_ids>]` tag; instead of silently patching, open a gap.
+4. **Interview follow-up** (`discovered:interview`): a probe surfaces a partial answer
+   hinting at a deeper unknown; write a child annotation rather than extending the same
+   entry.
+
+**Lifecycle** (status transitions, forward-only except explicit invalidation):
+
+1. **Open.** Annotate the slot with `status: open` (or leave the skeleton default) and a
+   clear, single-sentence question. "Learn more about childhood" is not a gap; "What was
+   their first memory of loss?" is.
+2. **Attempt.** Probing does **not** change status (the old `probed` state is retired) —
+   attempts are recorded by updating `last_touched` and extending `decay_after`. Do not
+   probe the same slot more than once within a 72-hour window unless new evidence
+   changes the question.
+3. **Partial / closed.** As evidence lands, status moves to `partial`, then `closed`,
+   with `exemplar` anchored to the supporting artifact (replacing the old
+   `close_pointer`: the exemplar **is** the close pointer).
+4. **Invalidation / reopen.** If a closing artifact is later redacted or its anchor
+   invalidated, revert the slot to `open`/`partial` with `exemplar: none` and append an
+   attempt note — never overwrite the history silently. An invalidated slot is exempt
+   from the merge rule for 30 days (the earlier answer may be stale).
+5. **`versioned` / `declined` / `deferred-open`.** Per the status semantics above;
+   `declined` and a non-null `avoidance_named` are permanent consent records.
+
+**Write procedure:**
+
+1. Load `gaps.md` and the current `USER.md`.
+2. Run claim-contract lint on `USER.md`: every non-quote claim must carry a synthesis tag
+   or have a matching gap.
+3. For each missing anchor, create or merge a slot annotation with
+   `source: discovered:lint`; for each low-confidence Hindsight assertion without
+   archive support, `discovered:hindsight`.
+4. Sort open/partial slots by computed priority descending.
+5. Persist `gaps.md`; verify the write by re-reading the first and last three entries.
+
+**Ledger lint:** `gaps.md` must parse cleanly; every entry carries the required schema
+fields with enum-valid values; `status` transitions are forward-only except explicit
+invalidation; every non-open slot's `exemplar` resolves to a real archive artifact ID.
+One malformed entry fails the lint (100% coverage, no sampling).
 
 ## Avoidance-naming mechanic
 
@@ -160,9 +216,11 @@ it is encoded with hard semantics.
 **Procedure:**
 
 1. Consolidation loop flags the slot as `avoidance-eligible` and records the evidence window.
-2. Mode selector checks: is there an active warm conversation and an open tier-2 or lower
+2. The engine checks: is there an active warm conversation and an open tier-2 or lower
    moment? If not, do not fire; eligibility persists until conditions are met or the
-   subject later fills the slot normally.
+   subject later fills the slot normally. (The deterministic predicate and refusal codes
+   live in `engram-engagement-engine`; the phrasing contract lives in
+   `engram-engagement-repertoire`, Mode J.)
 3. Generate the probe inside the active conversation, anchored to the relationship rather
    than a template.
 4. Send exactly one sentence. Do not bundle a second question.
@@ -203,29 +261,21 @@ Deferral rules:
   shallow exit. Examples:
   - *"You mentioned the full story was too long for chat — up for telling it over a voice memo when you have bandwidth?"*
   - *"You said after exams would be better. No pressure, just letting you know I'm around if you want to talk then."*
-- **Second deferral → `deferred-open`.** If the one revisit is also deferred, state-accounting
+- **Second deferral → `deferred-open`.** If the one revisit is also deferred, the engine
   sets `status: deferred-open`. This is behaviorally equivalent to `declined` for outbound
   purposes — no further knocks — but semantically distinct: the door is open, and a later
   user-initiated disclosure is received as warm gap-filling, not a reopen.
 - **User-initiated disclosure from `deferred-open` or `declined`** moves the slot to
   `partial`/`closed` normally.
 
-## Mode proposal: Mode A variant vs. new Mode J
+## Mode J provenance (historical)
 
-The avoidance-naming mechanic could be folded into Mode A as a **Tier-A+ variant**
-(curiosity callback with explicit consent gating) or introduced as a **new Mode J**
-("naming the silence"). The author proposes **Mode J** for these reasons:
-
-- It is not a routine curiosity probe; it is a deliberate, bounded exception to the
-  graduated-intimacy rule.
-- It carries a permanent `declined` outcome, unlike normal Mode A probes which can be
-  retried after new evidence.
-- It requires a warm-conversation context, not just a high-priority gap.
-- Separating it makes the consent surface visible in `mode_history`, judge scoring, and
-  TEST-PLAN coverage.
-
-If critic rules Mode A variant, the mechanics above still apply; only the routing table
-changes.
+The avoidance-naming mechanic was proposed either as a Mode A variant or a new Mode J;
+adjudicated 2026-08-27 as **Mode J** ("naming the silence") — a deliberate, bounded
+exception to the graduated-intimacy rule with a permanent `declined` outcome and a
+warm-conversation requirement, kept visible in `mode_history`, judge scoring, and
+TEST-PLAN coverage. Mode J's phrasing contract lives in `engram-engagement-repertoire`;
+its predicate and state writes in `engram-engagement-engine`.
 
 ## Pitfalls
 
@@ -242,14 +292,22 @@ changes.
   from the subject, not from the agent.
 - **Cold avoidance naming.** If there is no active warm exchange, the move is delayed, not
   delivered anyway.
+- **Interview script creep.** A gap is a question, not a scripted exchange. The repertoire
+  turns it into a warm probe.
+- **Lint-only gaps.** If the only source is the linter, the mirror-SOUL skill may be
+  writing unanchored claims — that is a finding to nexus, not a ledger problem.
 
 ## Verification
 
-- [ ] `skills/engram-gap-skeleton/SKILL.md` parses as valid YAML frontmatter.
+- [ ] `gaps.md` parses cleanly; ledger lint passes on 100% of entries (schema fields,
+      enum values, resolvable exemplars).
 - [ ] The L0–L8 taxonomy covers all enumerated layers with representative slots.
-- [ ] Ledger schema includes every required field and allowed enum value, including `avoidance_named`.
+- [ ] No old-schema fields (`priority`, `probed_at`, `probe_count`, `close_pointer`,
+      `confidence`) remain; probing is tracked via `last_touched`/`decay_after`.
 - [ ] Priority formula is expressed as deliverable_value × anchor_strength × tier_gate × recency_of_attempt.
 - [ ] Tier-3 slots are explicitly gated to priority 0 unless the trust gate is open.
 - [ ] Avoidance-naming constraints include exactly-once, deflection→declined, warm-conversation-only, and voice-gate.
 - [ ] Deferral three-outcome table and second-deferral→deferred-open rule are present.
-- [ ] Mode A vs Mode J proposal is recorded and tagged for critic adjudication.
+- [ ] Duplicate questions were merged per the merge rule; no duplicate `id`s exist.
+- [ ] Status transitions were forward-only except explicit invalidation with an
+      appended note; closed history was never overwritten.
