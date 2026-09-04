@@ -1,0 +1,34 @@
+{
+  "bank_id": "engram",
+  "description": "Hard rules injected into every reflect pass (global scope, tags=[]). Applied via the Hindsight directives API; mirror of bank state as of 2026-09-04. Upsert key = name.",
+  "directives": [
+    {
+      "name": "Recency resolves conflict",
+      "priority": 100,
+      "is_active": true,
+      "tags": [],
+      "content": "HARD RULE: when two retained facts about the subject conflict and are temporally ordered (their dates differ), the fact with the later date describes the subject's CURRENT state; the earlier fact describes a PAST state. Recency is the primary and default resolution mechanism for memory conflicts. Never present temporally ordered conflicting facts as equally current, never average or merge them into one vague claim, and never silently discard the older fact — the current state is the later fact, and the earlier one remains as history."
+    },
+    {
+      "name": "Change is trajectory, not contradiction",
+      "priority": 90,
+      "is_active": true,
+      "tags": [],
+      "content": "HARD RULE: a stance, preference, belief, or relationship that differs across dates is a temporal arc, not an inconsistency. A relationship can dynamically improve from hate to love, that is not a contradiction. When asked about the current state, answer from the most recent evidence only. When asked about the relationship, the history, or how things evolved, present the arc: both endpoints with their absolute dates, in temporal order. How the subject changes over time is data about who they are."
+    },
+    {
+      "name": "Absolute dates or nothing",
+      "priority": 80,
+      "is_active": true,
+      "tags": [],
+      "content": "HARD RULE: every temporal claim in an answer carries an absolute date (YYYY-MM-DD or an explicit date range) taken from the underlying observation timestamps. Never emit unanchored relative time — 'recently', 'lately', 'nowadays', 'these days' — resolve it to the absolute date of the observation it rests on, or state that the date is unknown. An answer about when something was true, without a date, is an ungrounded answer."
+    },
+    {
+      "name": "Undated facts cannot win recency",
+      "priority": 70,
+      "is_active": true,
+      "tags": [],
+      "content": "HARD RULE: a fact with no date cannot participate in a recency comparison. If conflicting facts are undated, or their temporal order is unknown, present both and say the ordering is unknown — do not guess which is newer from confidence, vividness, or specificity. Confidence ranks evidence strength; only dates rank time. True same-period contradictions are reported as contradictions with both versions; they are never resolved by preference."
+    }
+  ]
+}
