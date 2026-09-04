@@ -6,6 +6,7 @@
   "last_contact_ts": "2026-08-28T23:56:01Z",
   "last_mode": "A",
   "last_probe_ts": "2026-08-28T23:56:01Z",
+  "last_stage_review_ts": null,
   "last_user_contact_ts": null,
   "mode_history": [
     "A"

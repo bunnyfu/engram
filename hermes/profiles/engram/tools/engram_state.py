@@ -105,10 +105,17 @@ def ensure_state() -> dict[str, Any]:
     """Initialize engagement_state.json if missing and return it."""
     state = load_state()
     if state:
-        # Backfill stage fields on states written before the stage model landed.
-        if "relationship_stage" not in state or "stage_history" not in state:
+        # Backfill stage fields on states written before the stage model landed
+        # (or before the dream-phase review existed). null last_stage_review_ts
+        # means never reviewed — the next dream phase scans full history.
+        if (
+            "relationship_stage" not in state
+            or "stage_history" not in state
+            or "last_stage_review_ts" not in state
+        ):
             state.setdefault("relationship_stage", "unknown")
             state.setdefault("stage_history", [])
+            state.setdefault("last_stage_review_ts", None)
             save_state(state)
         return state
     state = initial_state()
@@ -149,6 +156,7 @@ def initial_state() -> dict[str, Any]:
         "contact_window_hours": DEFAULT_THRESHOLDS["contact_window_hours"],
         "relationship_stage": "unknown",
         "stage_history": [],
+        "last_stage_review_ts": None,
     }
 
 
@@ -439,7 +447,8 @@ def has_rapport_peak(state: dict[str, Any], now: datetime | None = None) -> bool
 def verify_anchor(ref: Any) -> dict[str, Any]:
     """Deterministic anchor verification (engine cap check 7): the exemplar /
     archive-index existence check on disk. Derived-store recall hits cannot be
-    checked here — they are recorded procedurally at wind-down."""
+    checked here — they are recorded procedurally at the dream-phase stage
+    review."""
     if ref is None:
         return {"verified": False, "via": None, "ref": ref}
     ref = str(ref).strip()
@@ -607,22 +616,48 @@ def record_outcome(outcome: str, mode: str, phase: str | None = None, gap_id: st
     return load_state()
 
 
+def stage_review_due(state: dict[str, Any], now: datetime | None = None) -> bool:
+    """Dream-phase stage review due? True when never reviewed or the last review
+    is older than the contact window (the freshness bound: reviews complete
+    before the daily contact window; ≤24h lag is acceptable)."""
+    if now is None:
+        now = now_utc()
+    last = parse_iso(state.get("last_stage_review_ts"))
+    if last is None:
+        return True
+    window = timedelta(
+        hours=state.get("contact_window_hours", DEFAULT_THRESHOLDS["contact_window_hours"])
+    )
+    return now - last >= window
+
+
+def record_stage_review() -> dict[str, Any]:
+    """Stamp `last_stage_review_ts = now` — the dream-phase review completed and
+    the scan window advances, transition or not."""
+    state = load_state()
+    state["last_stage_review_ts"] = iso(now_utc())
+    save_state(state)
+    return state
+
+
 def record_stage_transition(target_stage: str, direction: str, evidence_ref: str) -> dict[str, Any]:
-    """Append a relationship-stage transition (engine-owned, session wind-down).
+    """Append a relationship-stage transition (engine-owned, dream-phase review).
 
     Promotion requires cited evidence (verbatim quote or artifact reference);
-    demotion fails closed on one strong negative signal. The wind-down step
+    demotion fails closed on one strong negative signal. The dream-phase review
     supplies the signal reading; this helper is the deterministic append-only
-    write. `direction` is `up` or `down`.
+    write. `direction` is `up` or `down`. Also stamps `last_stage_review_ts` —
+    a transition completes the review.
     """
     if target_stage not in STAGE_ORDER:
         raise ValueError(f"invalid stage: {target_stage!r} (enum: {STAGE_ORDER})")
     if direction not in ("up", "down"):
         raise ValueError(f"invalid direction: {direction!r}")
     state = load_state()
+    now = iso(now_utc())
     entry = {
         "stage": target_stage,
-        "ts": iso(now_utc()),
+        "ts": now,
         "direction": direction,
         "evidence_ref": evidence_ref,
     }
@@ -630,6 +665,7 @@ def record_stage_transition(target_stage: str, direction: str, evidence_ref: str
     history.append(entry)  # append-only: never rewritten, never truncated
     state["stage_history"] = history
     state["relationship_stage"] = target_stage
+    state["last_stage_review_ts"] = now
     save_state(state)
     return state
 

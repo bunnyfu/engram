@@ -66,8 +66,8 @@ whitelist item still stops the line exactly where the gate sits.
       `mode_j_eligible`, `pending_revisits` (Mode J deferral machinery), plus the
       interview fields `last_probe_ts`, `ignored_count`, `passive_mode`,
       `redaction_cooldown_until`, `last_user_contact_ts`, and the relationship-stage
-      fields `relationship_stage` (default `unknown`) and append-only `stage_history`;
-      tooling refuses to wake engram when
+      fields `relationship_stage` (default `unknown`), append-only `stage_history`,
+      and `last_stage_review_ts` (dream-phase review window); tooling refuses to wake engram when
       ANY single cap condition fails (unit-level evidence per condition: passive_mode,
       cooldown, agent-initiated contact within the past 24h rolling window, active
       session) and gates every candidate mode on stage (`min_stage`) and anchor
@@ -852,8 +852,10 @@ file under `hermes/profiles/engram/test-evidence/`.
   relationship stage model (`unknown|hostile|unfriendly|neutral|friendly|confidant`;
   `relationship_stage` default `unknown` + append-only `stage_history` in
   `engagement_state.json`; depth permission derived per stage, never stored;
-  derivation at session wind-down from evidence signals, promotion needs cited
-  evidence, demotion fails closed). Pre-wake order gains eligibility checks 6–7
+  derivation in the dream phase (an out-of-session review inside the
+  consolidation duty, scanning sessions since `last_stage_review_ts` and
+  completing before the daily contact window) from evidence signals, promotion
+  needs cited evidence, demotion fails closed). Pre-wake order gains eligibility checks 6–7
   (stage gate + anchor verification, fall-through not bail). Gap pacing:
   `gap_pressure` (A/J in last 2 agent-initiated contacts) blocks A and J; Mode A
   needs a rapport-peak signal. Repertoire gains the shared grounding rule

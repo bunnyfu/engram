@@ -41,8 +41,9 @@ mid-way habit drop: when the user goes quiet, the agent becomes a proactive rese
      memos (archived raw for future voice cloning + transcribed for the text corpus),
      shared photos/documents — all ingested, all archived.
    - **Agent-initiated:** a background consolidation loop inspects the corpus and peer
-     model, maintains a **gap ledger**, and prepares interviews. A cron wakes the
-     Engram profile to deliver gentle, curiosity-driven probes (see §Interview engine).
+     model, maintains a **gap ledger**, runs the **dream-phase** relationship-stage
+     review, and prepares interviews. A cron wakes the Engram profile to deliver
+     gentle, curiosity-driven probes (see §Interview engine).
 
 4. **Mirror-SOUL.** A living `USER.md` — a SOUL.md *of the user* — maintained by the
    consolidation loop (Letta human/persona-block pattern, generalized). Every entry is
@@ -77,19 +78,20 @@ constraint contracts (tone, anchor, shape), never scripts. Voice gate applies to
 every mode. Depth is user-led. Any "busy"/silence → metadata-only log, cooldown,
 exponential backoff. **Silence is a first-class outcome, not a failure.**
 
-**Relationship-stage gating (grounding rule):** the engine tracks a relationship
-stage (`unknown|hostile|unfriendly|neutral|friendly|confidant`), derived at
-session wind-down from evidence signals (reciprocity, self-disclosure, warmth;
-ignored or hostile contacts demote — one strong negative signal is enough) and
-logged append-only in `stage_history`. Every mode carries a `min_stage`; a fresh
-subject is `unknown` — cold start: eligible set I/G/D (B only on an explicitly
-user-mentioned event), no history-anchored modes, no past-tense familiarity,
-present-tense curiosity only. Past-tense phrasing is banned below `friendly` and
-always requires a verified anchor (archive artifact, derived-store recall, or
-verbatim prior-session quote) — never fabricated shared history. Gap probes also
-respect pacing: no Mode A/J within the last two agent-initiated contacts, and Mode
-A requires a rapport-peak signal (gaps close at rapport peaks, never on first
-contact).
+**Relationship stage model (the inverted RPG).** The engine continuously assesses
+where the relationship actually stands — an inverted RPG where the system tracks
+its own progress with the subject instead of the player's. Ladder: `unknown →
+hostile | unfriendly | neutral | friendly | confidant`; `unknown` = cold start
+(no verified subject data, depth permission zero). Depth is a derived permission,
+not an assumption: mode eligibility is stage-gated (at `unknown`, no
+history-anchored mode is eligible — the agent starts cold, small talk is the
+runway), and past-tense familiarity is banned without a verified anchor: never
+fake shared history. Stage transitions are decided by a **dream phase** in the
+consolidation loop — an out-of-session review scanning sessions since the last
+review, promoting only with citable evidence, demoting fail-closed; the
+in-session agent never writes engagement state (single-writer). Gaps close at
+rapport peaks: Mode A/J are additionally paced by gap-pressure and rapport-peak
+signals, never forced on first contact or every opportunity.
 
 **Modes:**
 - **A. Curiosity callback** — the original interview engine, demoted to *fallback*:
@@ -119,7 +121,8 @@ Mode I otherwise.
 **Evidence-derived craft rules** (catalogs):
 - Open content-forward with a specific callback; never a greeting script.
 - Inside conversations: ~2:1 reflections-to-questions (motivational interviewing).
-- Breadth-before-depth, graduated intimacy across sessions; never deep on first touch.
+- Breadth-before-depth, graduated intimacy across sessions (mechanized by the
+  stage model); never deep on first touch.
 - Keep each initiated interaction short — length hurts more than frequency (ESM).
 - Aim reminiscence at the reminiscence bump (ages ~10–30) when the archive supports it.
 - Banned: stock phrases, greeting resets, duplicate greetings, always-first-and-last
@@ -148,8 +151,10 @@ Mode I otherwise.
   for taxonomy, schema, formula, and mode routing question (Mode A variant vs. new Mode J).
 - **Engagement state** `engagement_state.json` (supersedes `interview_state.json`):
   `last_contact_ts`, `last_mode`, `mode_history` (rolling window, variety enforced),
-  plus the interview fields `last_probe_ts`, `ignored_count`, `passive_mode`,
-  `redaction_cooldown_until`, `last_user_contact_ts`.
+  the interview fields `last_probe_ts`, `ignored_count`, `passive_mode`,
+  `redaction_cooldown_until`, `last_user_contact_ts`, and the relationship-stage
+  fields `relationship_stage`, `stage_history` (append-only), and
+  `last_stage_review_ts`.
 - **Mechanics (unchanged, generalized to all contacts):** caps enforced by cron
   tooling, never profile prose. Active-session detection is a deterministic lookup.
   Contacts land in a configured window (e.g. 18:00–22:00 subject-local) with bounded

@@ -15,8 +15,9 @@ metadata:
 
 The deterministic control layer for agent-initiated engagement: the canonical
 `engagement_state.json` schema, pre-wake accounting, cap checks, mode selection,
-session exchange budget with wind-down and the cooling lock, session conversation
-routing, and the Mode J eligibility predicate with deferral/revisit processing.
+the relationship stage model with its dream-phase review, session exchange
+budget with wind-down and the cooling lock, session conversation routing, and
+the Mode J eligibility predicate with deferral/revisit processing.
 This skill consolidates the former `engram-mode-selector`,
 `engram-state-accounting`, and `engram-conversation-handler` skills. Tooling owns
 all of it; the profile drafts and sends per `engram-engagement-repertoire` and
@@ -28,7 +29,8 @@ never writes state.
   conversation handling) — before any cap check or mode selection.
 - When the Mode J eligibility scan runs or a Mode J outcome needs disposition.
 - When a session reply needs phase narrowing (`open` / `nudging` / `closing`).
-- When session wind-down derives a relationship-stage transition (stage model below).
+- When the dream-phase stage review (run by the consolidation duty) derives a
+  relationship-stage transition (stage model below).
 
 Don't use for: drafting, phrasing, or per-mode voice contracts
 (`engram-engagement-repertoire`); gap taxonomy and slot semantics
@@ -79,7 +81,8 @@ interview skill schemas). Reference implementation: `tools/engram_state.py`.
       "direction": "up",
       "evidence_ref": "eng_20260820_002"
     }
-  ]
+  ],
+  "last_stage_review_ts": "2026-08-29T02:00:00Z"
 }
 ```
 
@@ -130,6 +133,10 @@ Field definitions:
   `{stage, ts, direction, evidence_ref}` with `direction` `up` or `down`. Entries
   are never rewritten or removed. Depth permission is **derived per stage, never
   stored** — only these two fields live in state.
+- `last_stage_review_ts`: timestamp of the most recent dream-phase stage review;
+  `null` = never reviewed — the next review scans the full archive index. Advances
+  only when the dream-phase review runs (transition or not); written by the
+  review tooling alone.
 
 ## Relationship stage model
 
@@ -142,14 +149,27 @@ eligibility checks in mode selection).
   depth-permission-zero — the eligible set is Mode I, G, D, and B on an explicitly
   user-mentioned event; no history-anchored modes, no past-tense phrasing,
   present-tense curiosity only.
-- **Stage derivation is engine-owned** and runs at session wind-down from evidence
-  signals: subject-initiated session count, reply-length reciprocity, unprompted
-  self-disclosure depth, explicit warmth markers, ignored contacts (down), and
-  hostility/irritation markers (down).
+- **Stage derivation is a dream-phase review**, engine-owned and executed by the
+  consolidation duty (cron) — an out-of-session step that must complete before
+  the daily contact window. Scan window: all sessions since
+  `last_stage_review_ts`; a first-ever review (`null`) scans the full archive
+  index. Decision procedure: evaluate the evidence signals across the scanned
+  arc — subject-initiation reciprocity, reply-depth reciprocity, unprompted
+  self-disclosure, explicit warmth markers, ignored contacts (down),
+  hostility/irritation markers (down) — and decide promote/demote.
 - **Promotion requires cited evidence** — a verbatim quote or artifact reference,
   recorded as `evidence_ref` in the appended `stage_history` entry. **Demotion fails
   closed:** one strong negative signal (hostility, irritation, sustained ignoring)
   is enough; no evidence quorum is owed to back off.
+- **`unknown` is not sticky.** The first review with any session data must assign
+  a concrete warmth stage; `unknown` never survives a review that had evidence
+  to read.
+- **Why out-of-session:** **single-writer discipline** — the in-session agent
+  never writes `engagement_state.json`, stage included (cross-ref the repertoire
+  preamble and SOUL); **detachment** — the warm in-the-moment persona must not
+  judge demotions, and the dream-phase reviewer sees the whole arc, not the
+  moment it is inside; **freshness** — a ≤24h lag before a transition lands is
+  acceptable, promotions do not need to be instant.
 - **Depth permission is derived per stage, not stored.** Consumers compute it from
   `relationship_stage` + the repertoire's `min_stage` matrix; nothing else
   persists.
@@ -405,7 +425,9 @@ send, sets it once, and never schedules a second. Revisit outcomes: disclosure �
 
 Only this skill (its tooling, `tools/engram_state.py` and the directors) writes:
 `engagement_state.json` (all fields, including `mode_j_eligible`,
-`pending_revisits`, and session fields) and slot-level `deferral` /
+`pending_revisits`, session fields, and the stage fields —
+`relationship_stage`, `stage_history`, `last_stage_review_ts` are written only
+by the dream-phase review tooling) and slot-level `deferral` /
 `avoidance_named` fields in `gaps.md`. Mode prompts, actuators, and the profile
 **invoke or report**; they never read or write state directly. The selector cron
 reads scheduling state but does not evaluate Mode J eligibility.
@@ -434,14 +456,14 @@ silently:
 6. `record_send` would write `mode_last_sent.I` if ever called with `"I"`; by
    construction it never is (Mode I is a no-send), so prose and code agree in
    practice.
-7. Stage derivation: the wind-down signal scoring (session counts, reply-length
-   reciprocity, self-disclosure depth, warmth/hostility markers) is procedural —
-   the code implements the deterministic gates (`MODE_MIN_STAGE`, gap pressure,
-   rapport-peak-from-`stage_history`) and the `record_stage_transition` write
-   helper, not the signal reading itself.
+7. Stage derivation: the signal scoring is procedural in the dream phase — the
+   code ships the deterministic gates (`MODE_MIN_STAGE`, gap pressure,
+   rapport-peak-from-`stage_history`), the `record_stage_transition` write helper,
+   and `last_stage_review_ts` bookkeeping (`stage_review_due`,
+   `record_stage_review`) only, not the signal reading itself.
 8. Anchor verification: the code verifies the deterministic part only — `gaps.md`
    exemplar / archive-index existence on disk. Derived-store recall hits cannot be
-   checked on disk; they are recorded procedurally at wind-down (as
+   checked on disk; they are recorded procedurally in the dream-phase review (as
    `evidence_ref`s) and trusted from those records.
 9. The unknown-stage B exception ("explicitly user-mentioned event") is approximated
    in code by "a subject artifact exists in the archive index" — no
@@ -486,6 +508,7 @@ silently:
       landing instruction; `closing` forced one short final reply.
 - [ ] Mode J: predicate deterministic; `avoidance_named` exactly-once; refusals
       returned verbatim; deferral record complete; one-knock cap enforced.
-- [ ] Any relationship-stage transition was appended to `stage_history` with a
-      cited `evidence_ref`; promotion without evidence did not happen.
+- [ ] Any relationship-stage transition came out of the dream-phase review and
+      was appended to `stage_history` with a cited `evidence_ref`; promotion
+      without evidence did not happen; `last_stage_review_ts` advanced.
 - [ ] Every outcome was persisted by the engine, not by a prompt or the profile.
