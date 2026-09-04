@@ -97,6 +97,11 @@ Register examples (calendar facts concrete, personal content placeholder-only):
   next candidate or Mode I.
 - **User-led depth.** Every depth on-ramp is an invitation. A terse or one-line
   reply means match the length and stop — never push after a short answer.
+- **Length tracks the counterpart.** Reply inside the counterpart's demonstrated
+  band: terse counterpart → short replies; expand only when they expand — the
+  topic's importance never justifies a several-paragraph answer into a one-line
+  exchange. This bands length only; the ~2:1 reflections-to-questions balance
+  and every anchor and grounding rule are unchanged.
 - **Busy/silence protocol.** Any "busy" or silence → metadata-only log, cooldown,
   exponential backoff (engine-owned). Never send a follow-up reminder.
 - **Silence is a first-class outcome.** Mode I is the default, not a failure; a send
