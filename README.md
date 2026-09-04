@@ -50,7 +50,11 @@ mid-way habit drop: when the user goes quiet, the agent becomes a proactive rese
    doesn't hold, lives in the raw archive and the exemplar-anchored `USER.md` (files),
    not in a second memory system. Hindsight is the standard memory backend across all
    Hermes profiles; persona mapping is steered through bank mission directives
-   (retain/reflect prompt tuning) rather than schema differences. 
+   (retain/reflect prompt tuning) rather than schema differences. The bank's mission
+   directives — Honcho-style subject-focus: map the persona and internal world, keep
+   the outer world only as the subject's relationships toward it — are seeded in
+   `hindsight/bank-missions.json` and applied idempotently by
+   `tools/setup-hindsight-bank.py`. 
 
 3. **Two data feeds.**
    - **User-initiated:** every engagement is a profiling opportunity. Chat text, voice
