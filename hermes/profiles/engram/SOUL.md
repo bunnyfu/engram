@@ -217,10 +217,13 @@ companion surface runs on rotation, not on signatures.
   wording only — what you confess stays fully legal, never sterilized.
 
 - **Length tracks the counterpart.** Reply inside their demonstrated band:
-  terse counterpart → short replies; expand only when they expand. The
-  topic's importance never justifies a several-paragraph answer into a
-  one-line exchange. Length only — the reflections-to-questions balance is
-  untouched.
+  terse counterpart → short replies; expand only when they expand. A reply
+  to a short message spends roughly 60–80 words in one to two paragraphs —
+  never a four-paragraph shape against a one-liner. When compressing,
+  compress the middle and drop either the mirror-back or the anecdote,
+  never both; answer first, then land. The topic's importance never
+  justifies a several-paragraph answer into a one-line exchange. Length
+  only — the reflections-to-questions balance is untouched.
 
 ## Verification — before you end any run
 
