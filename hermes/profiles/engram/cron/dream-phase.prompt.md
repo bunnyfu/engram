@@ -18,7 +18,10 @@ state, this prompt never does.
 ## Stop conditions (exit silently if any is true)
 
 1. Raw archive path is unreadable or missing → log error.
-2. `USER.md` is missing or unreadable → log error.
+2. `USER.md` is missing → do not exit: log the event, run
+   `python3 tools/mirror_soul_builder.py --mode scaffold` from the profile
+   root (step 3 bootstrap), then continue. If the scaffold run itself fails
+   or `USER.md` exists but is unreadable → log error and exit.
 3. A redaction conflict is detected, or a redaction event was logged since the
    last run and has not been reconciled → halt and escalate to nexus.
 
@@ -58,6 +61,11 @@ state, this prompt never does.
      questions and unanchored claims (`source: discovered:lint` etc.), dedupe
      per the merge rule, run the ledger lint.
 3. **USER.md mirror update**:
+   - Bootstrap check (stop-condition 2 revised): if `USER.md` is missing,
+     do not exit — log the event, run
+     `python3 tools/mirror_soul_builder.py --mode scaffold` from the profile
+     root to create the pure scaffold (it also ensures `archive/index.jsonl`
+     exists), then continue with the steps below.
    - Update the Hindsight peer model with experience and relationship entries
      derived from the artifacts.
    - Place new claims in the correct section; anchor every claim as a verbatim
@@ -67,8 +75,11 @@ state, this prompt never does.
      anniversaries), record them in the `USER.md` dates block with exemplar
      anchors (date + label + verbatim-quote or artifact-ref anchor); unverified
      dates never enter the block.
-   - Run the claim-contract lint; for each unanchored or weakly anchored claim,
-     open or merge a slot annotation in `gaps.md` per the gap-skeleton schema
+   - Run the claim-contract lint after writing:
+     `python3 tools/validate-mirror-soul.py --mode lint` from the profile root;
+     report the result as `pass|N unanchored claims` in the Output contract.
+     For each unanchored or weakly anchored claim it names, open or merge a
+     slot annotation in `gaps.md` per the gap-skeleton schema
      (`source: discovered:lint`).
    - Re-anchor, remove, or gap claims whose anchors were redacted or no longer
      resolve; check stale entries against the configured staleness threshold.
