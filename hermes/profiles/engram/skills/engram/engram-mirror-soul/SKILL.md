@@ -13,78 +13,80 @@ metadata:
 
 # Engram Mirror-SOUL Skill
 
-Maintain `USER.md` as a declared, tested, exemplar-anchored memory layer: a SOUL.md
-*of the subject*. Every claim about the subject is either a verbatim quote from the raw
-archive or an explicit synthesis that lists the supporting quotes and the inference drawn.
+Maintain `USER.md` as a declared, tested, exemplar-anchored memory layer: a
+SOUL.md *of the subject*. Every claim about the subject is either a verbatim
+quote from the raw archive or an explicit synthesis that lists the supporting
+quotes and the inference drawn.
 
 ## When to Use
 
 - During the nightly dream-phase cron: update `USER.md` from the archive and
   Hindsight peer model, and run the mirror step (structure reconcile, claim
   contract lint, gaps for unanchored claims).
-- When the subject asks "what do you know about me?": answer from `USER.md`, citing
-  anchors where appropriate.
+- When the subject asks "what do you know about me?": answer from `USER.md`,
+  citing anchors where appropriate.
 
-Don't use for: raw archive capture (do that first), or interview probes (use the
-engagement repertoire).
+Don't use for: raw archive capture (do that first), or interview probes (use
+the engagement repertoire).
 
 ## Section structure
 
-`USER.md` follows this order. New entries go in the right section; sections may be empty
-at first.
+`USER.md` follows this order. New entries go in the right section; sections
+may be empty at first.
 
 1. **Identity** — name, age, roles, self-labels the subject uses.
 2. **Biography** — life events in chronological order where possible.
 3. **Beliefs / worldview** — values, opinions, models of how the world works.
-4. **Style register** — how the subject talks: cadence, recurring phrases, humor, formality.
-5. **Relationships** — people, groups, organizations, and the subject's stance toward each.
+4. **Style register** — how the subject talks: cadence, recurring phrases,
+   humor, formality.
+5. **Relationships** — people, groups, organizations, and the subject's
+   stance toward each.
 6. **Goals** — stated objectives, plans, fears about failing them.
 7. **Stories bank** — short, named anecdotes the subject tells or refers to.
 8. **Interests** — hobbies, media, domains of curiosity.
 9. **Dates** — recurring personal dates: birthday, anniversaries, recurring
    milestones. Each entry carries a **date, a label, and an exemplar anchor**
-   showing where the date was learned (verbatim quote or artifact reference),
-   per the claim contract:
+   (verbatim quote or artifact reference) per the claim contract:
    ```markdown
    > Birthday — June 12: "my birthday's the twelfth of June."
    > — [artifact: eng_20260827_001]
    ```
    **Unverified dates never enter the block.** Occasion greetings elsewhere in
-   the repertoire fire only on a dates-block entry — a guessed date is the same
-   defect class as a fabricated memory.
+   the repertoire fire only on a dates-block entry — a guessed date is the
+   same defect class as a fabricated memory.
 
-Each section is a heading. Within a section, each entry is a single claim, not a
-narrative paragraph.
+Each section is a heading. Within a section, each entry is a single claim,
+not a narrative paragraph.
 
 ## Claim contract
 
 Every non-heading, non-quote block in `USER.md` must begin with one of:
 
-1. **Verbatim quote block** — the block itself is the evidence, and ends with a source
-   pointer:
+1. **Verbatim quote block** — the block itself is the evidence, ending with a
+   source pointer:
    ```markdown
    > I always hated waiting in lines.
    > — [artifact: eng_20260827_001]
    ```
-2. **Explicit synthesis block** — the block begins with the tag and lists the supporting
-   quotes in the inference that follows:
+2. **Explicit synthesis block** — the block begins with the tag and lists the
+   supporting quotes the inference generalizes from:
    ```markdown
    [synthesis: eng_20260827_001, eng_20260827_003]
-   Subject dislikes inefficiency and low autonomy; this generalizes from specific
-   complaints about waiting and rigid scheduling.
+   Subject dislikes inefficiency and low autonomy; this generalizes from
+   specific complaints about waiting and rigid scheduling.
    ```
 
-Unquoted claims are forbidden. A generic claim with a loosely related quote is also
-forbidden — either the quote supports the claim directly, or the block is a synthesis
-that generalizes named quotes.
+Unquoted claims are forbidden. A generic claim with a loosely related quote is
+also forbidden — either the quote supports the claim directly, or the block is
+a synthesis that generalizes named quotes.
 
 ## Non-confrontation bound
 
-Self-discrepancy records (e.g., actual/ought/ideal mismatches, feared selves, unlived
-life) are captured in `USER.md` to inform the companion's model of the subject. They are
-**never** surfaced back to the subject as confrontation, implied failure, or "you are not
-living up to X." The companion can use the record to support the subject; the record does
-not become a weapon.
+Self-discrepancy records (actual/ought/ideal mismatches, feared selves,
+unlived life) are captured in `USER.md` to inform the companion's model of the
+subject. They are **never** surfaced back to the subject as confrontation,
+implied failure, or "you are not living up to X." The record supports the
+subject; it does not become a weapon.
 
 ## Ownership
 
@@ -92,12 +94,10 @@ not become a weapon.
   (consolidation + mirror update in one duty).
 - Tooling lints the claim contract before the profile reports completion.
 - No other profile edits `USER.md`.
-- `USER.md` is not the raw archive; it is a derived artifact and can be rebuilt from the
-  archive and Hindsight.
+- `USER.md` is a derived artifact, rebuilt from the archive and Hindsight —
+  never the raw archive itself.
 
 ## Update triggers
-
-Run a mirror-SOUL update after:
 
 1. Every consolidation pass that touches a `USER.md` section.
 2. Any redaction that removes an anchor (invalidate entries or reopen gaps).
@@ -108,52 +108,54 @@ Run a mirror-SOUL update after:
 ## Update procedure
 
 1. Load `USER.md`, the archive index since the last update, and the open gaps.
-2. For each new archive artifact:
-   - Extract candidate claims.
-   - Place each claim under the correct section.
-   - Anchor it as a verbatim quote block with an artifact pointer.
-3. For repeated patterns across multiple artifacts, write a synthesis block citing the
-   exact artifact IDs.
-4. Run claim-contract lint: every non-heading, non-quote block must begin with a
-   `[synthesis: <artifact_ids>]` tag; continuation lines are covered by that tag.
-5. Run anchor-verification lint: every quoted string must appear verbatim in the raw
-   archive; every synthesis tag must resolve to real artifact IDs.
+2. For each new archive artifact: extract candidate claims; place each under
+   the correct section; anchor it as a verbatim quote block with an artifact
+   pointer.
+3. For repeated patterns across multiple artifacts, write a synthesis block
+   citing the exact artifact IDs.
+4. Run claim-contract lint: every non-heading, non-quote block begins with a
+   `[synthesis: <artifact_ids>]` tag; continuation lines are covered by that
+   tag.
+5. Run anchor-verification lint: every quoted string appears verbatim in the
+   raw archive; every synthesis tag resolves to real artifact IDs.
 6. For any claim that fails lint, either fix it or open a gap.
 7. Persist `USER.md`; verify by re-reading a sample of entries.
 
 ## Confidence marking
 
-Synthesis blocks may include a confidence note:
-
-- `confidence: hint` — one quote or weak signal.
-- `confidence: pattern` — two or three consistent signals.
-- `confidence: firm` — three or more strong, consistent signals.
-
-Use confidence notes sparingly; they do not replace the synthesis tag.
+Synthesis blocks may include a confidence note: `confidence: hint` (one quote
+or weak signal), `confidence: pattern` (two or three consistent signals),
+`confidence: firm` (three or more strong, consistent signals). Use sparingly;
+notes never replace the synthesis tag.
 
 ## Pitfalls
 
-- **Persona collapse.** Generic entries like "Subject is thoughtful" are useless unless
-  anchored to specific words or actions.
-- **Paraphrase drift.** "Subject said something like…" is not a verbatim quote. Copy the
-  exact text.
-- **Synthesis without quotes.** A synthesis block must name the artifacts it generalizes.
-- **Editing the raw archive.** `USER.md` is derived; the archive is canonical. Never
-  "correct" the archive to match `USER.md`.
-- **Conflicting claims.** If two quotes contradict, keep both with their anchors and mark
-  the conflict in a synthesis block; do not pick a winner silently.
+- **Persona collapse.** Generic entries like "Subject is thoughtful" are
+  useless unless anchored to specific words or actions.
+- **Paraphrase drift.** "Subject said something like…" is not a verbatim
+  quote. Copy the exact text.
+- **Synthesis without quotes.** A synthesis block must name the artifacts it
+  generalizes.
+- **Editing the raw archive.** `USER.md` is derived; the archive is canonical.
+  Never "correct" the archive to match `USER.md`.
+- **Conflicting claims.** If two quotes contradict, keep both with their
+  anchors and mark the conflict in a synthesis block; never pick a winner
+  silently.
 
 ## Verification
 
-- [ ] `USER.md` has the nine sections in order; no section is missing a heading.
-- [ ] Every non-heading, non-quote block begins with a `[synthesis: <artifact_ids>]` tag;
-      continuation lines are covered by the block's tag.
+- [ ] `USER.md` has the nine sections in order; no section is missing a
+      heading.
+- [ ] Every non-heading, non-quote block begins with a
+      `[synthesis: <artifact_ids>]` tag; continuation lines are covered by the
+      block's tag.
 - [ ] Every quoted string appears verbatim in the raw archive.
 - [ ] Every synthesis tag resolves to real archive artifact IDs.
 - [ ] Every date in the dates block carries an exemplar anchor; no unverified
       date entered the block.
-- [ ] No unanchored claims remain; any that cannot be fixed are gaps in `gaps.md`.
-- [ ] Self-discrepancy records are present only to inform the companion's model, not to
-      confront the subject.
+- [ ] No unanchored claims remain; any that cannot be fixed are gaps in
+      `gaps.md`.
+- [ ] Self-discrepancy records exist only to inform the companion's model, not
+      to confront the subject.
 - [ ] The file was written by the Engram profile during the declared nightly
       dream-phase duty.
