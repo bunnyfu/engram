@@ -15,8 +15,9 @@ metadata:
 
 Maintain `USER.md` as a **dossier on the subject**: a concise, third-person
 profile a reader with zero context can absorb in minutes. The normative
-grammar is `USER-SCHEMA.md` v1.0 (profile root); this skill is its operating
-summary — when the two disagree, the schema wins.
+grammar is `USER-SCHEMA.md` v1.0 (profile root, sibling of this skill's
+grandparent directory); this skill is its operating summary — when the two
+disagree, the schema wins.
 
 One sentence of doctrine: **the sentence is the unit, not the quote.** Every
 entry is a prose statement about the subject; a quote may appear *inside* a
@@ -25,8 +26,8 @@ sentence as evidence, never as the content itself.
 ## When to Use
 
 - During the nightly dream-phase cron: update `USER.md` from the archive and
-  Hindsight peer model, and run the mirror step (lint, gaps for unanchorable
-  claims).
+  Hindsight peer model, and run the mirror step (structure reconcile, lint,
+  gaps for unanchorable claims).
 - When the subject asks "what do you know about me?": answer from `USER.md`,
   citing artifacts where appropriate.
 
@@ -134,7 +135,8 @@ memory.
    sibling.
 6. **`USER.md` is derived; the archive is canonical.** When they disagree,
    the archive wins and the entry is corrected. Never edit the archive to
-   match the mirror.
+   match the mirror; never ship an uncited entry or a paraphrase presented
+   as a quote.
 
 ## Pre-write checklist — all nine boxes or the write does not ship
 
@@ -192,9 +194,9 @@ changelog); a probe that answered a gap; the nightly drift/stale check.
   — read it before your first write; reproduce its style.
 - **Anti-example:** the pre-2026-09-05 "junkpile" — standalone `>` quote
   blocks with pointer lines plus `[synthesis: …]` tag blocks restating them,
-  ~60% raw-quote volume, random notes with no home section. It passed the
-  old linter and was still unreadable as a profile; it is the explicit shape
-  this grammar exists to prevent.
+  ~60% raw-quote volume, random notes with no home section. That file passed
+  the old linter and was still unreadable as a profile; it is the explicit
+  shape this grammar exists to prevent.
 
 **Before (defect — quote dump + synthesis restating it):**
 
