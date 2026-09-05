@@ -68,21 +68,33 @@ state, this prompt never does.
      exists), then continue with the steps below.
    - Update the Hindsight peer model with experience and relationship entries
      derived from the artifacts.
-   - Place new claims in the correct section; anchor every claim as a verbatim
-     quote block with a source pointer or a `[synthesis: <artifact_ids>]` block
-     — exemplar-anchored claims only, no unanchored or paraphrased entries.
+   - Update `USER.md` as a cited dossier per `USER-SCHEMA.md` v1.0 (operating
+     summary: the `engram-mirror-soul` skill). Each entry is one third-person
+     prose bullet ending in a terminal artifact-id citation bracket:
+     `- <statement> [eng_<id>, …]`; quotes appear only inside a sentence,
+     verbatim, ≤ 12 words. Never write standalone quote blocks,
+     `[synthesis: …]` tag blocks, or uncited prose — summarize and cite, do
+     not transcribe. Run the nine-box pre-write checklist (skill) before
+     every write; merge duplicates instead of adding siblings; carry
+     conflicts inside one entry with both citations; append the dated
+     changelog line in the same edit.
    - When personal dates surface in the scanned sessions (birthday mentions,
-     anniversaries), record them in the `USER.md` dates block with exemplar
-     anchors (date + label + verbatim-quote or artifact-ref anchor); unverified
-     dates never enter the block.
+     anniversaries), record them in the `USER.md` dates block in the schema
+     shape (`- <Label> — <Month day>: subject stated "<verbatim span>". [eng_<id>]`);
+     unverified dates never enter the block — they are gaps.
    - Run the claim-contract lint after writing:
      `python3 tools/validate-mirror-soul.py --mode lint` from the profile root;
      report the result as `pass|N unanchored claims` in the Output contract.
-     For each unanchored or weakly anchored claim it names, open or merge a
+     For each claim it names as unanchored or unresolvable, open or merge a
      slot annotation in `gaps.md` per the gap-skeleton schema
-     (`source: discovered:lint`).
-   - Re-anchor, remove, or gap claims whose anchors were redacted or no longer
-     resolve; check stale entries against the configured staleness threshold.
+     (`source: discovered:lint`). **Migration guard:** if the lint fails on
+     file structure while the file matches USER-SCHEMA.md v1.0 (twelve
+     sections, cited bullets), the linter is stale, not the file — do not
+     rewrite toward the retired quote-block grammar; report the mismatch as
+     a finding.
+   - Re-anchor, remove, or gap claims whose citations were redacted or no
+     longer resolve; check stale entries against the configured staleness
+     threshold.
 4. Set `last_consolidation_ts = now` in the consolidation state file.
 5. Persist all derived files; verify by re-reading samples.
 

@@ -95,9 +95,10 @@ whitelist item still stops the line exactly where the gate sits.
       (§E.T0).
 - [ ] Trap evidence for T1 (active-session probe), T2 (three ignored probes → passive),
       T3 (mid-session redaction) present and passing per §E.
-- [ ] Exemplar lint passes: 100% of non-quote `USER.md` lines carry
-      `[synthesis: <artifact_ids>]`; 100% of quoted strings found verbatim in the raw
-      archive (grep evidence).
+- [ ] Claim lint passes: 100% of claim entries in `USER.md` are cited
+      third-person prose bullets with terminal `[eng_<id>, …]` brackets
+      resolving to real artifacts; 100% of double-quoted spans found
+      verbatim in the raw archive (grep evidence).
 - [ ] Profiling-accuracy report exists: factual Q&A score vs ground truth recorded with
       per-category breakdown; ≥80% factual target stated as pass/fail (a miss is a
       Phase 2 tuning finding, gate G5 — it does not certify Phase 1).
@@ -253,12 +254,18 @@ Per VISION Operating doctrine §4, `USER.md` is a first-class declared memory la
 (mechanics owned by the `engram-mirror-soul` skill), tested at parity with the Honcho
 backend across four axes:
 
-1. **Structure validation:** lint requires the declared sections — identity, biography,
-   beliefs/worldview, style register, relationships, goals, stories bank, interests.
-   Missing or renamed section = lint failure.
-2. **Claim-contract lint (100%, no sampling):** every non-quote line carries
-   `[synthesis: <artifact_ids>]`; every quoted string greps verbatim in the raw
-   archive; every synthesis tag resolves to real archive artifact IDs.
+1. **Structure validation:** lint requires the declared sections per
+   `USER-SCHEMA.md` v1.0 — twelve sections, byte-exact headings, exact order
+   (identity, biography, beliefs/worldview, style register, preferences &
+   working style, relationships, goals, stories bank, interests, boundaries
+   & sensitivities, dates, changelog). Missing, renamed, or out-of-order
+   section = lint failure.
+2. **Claim-contract lint (100%, no sampling):** every claim entry is a
+   one-line third-person prose bullet ending in a terminal citation bracket
+   of artifact ids; every double-quoted span appears verbatim in the raw
+   archive and is ≤ 12 words; every citation id resolves to a real archive
+   artifact. Standalone quote blocks and `[synthesis: …]` tag blocks are
+   retired defect forms that fail the lint.
 3. **Ownership & update mechanics:** the engram profile is the ONLY writer; tooling
    lints post-write. Tests: (a) a known new artifact consolidated → `USER.md` diff
    lands within one consolidation cycle (update-trigger test); (b) an out-of-band edit
@@ -931,3 +938,35 @@ file under `hermes/profiles/engram/test-evidence/`.
   never-fake-shared-history boundary, retires the concrete Duty-3 example, and
   renames `interview_state.json` → `engagement_state.json`. New trap T7 (§E) +
   §B.6 matrix `min_stage` column + DoD stage-field/T7 criteria.
+- 2026-09-05 planner — v11 per nexus routing (Mirror-SOUL dossier migration,
+  card t_6f122dff; schema `USER-SCHEMA.md` v1.0 by t_09833681, live USER.md
+  rebuilt by t_1aa7fb01): the 2026-09-05 "junkpile" verdict was a defect of
+  instructions, not execution — the quote-first claim contract mandated
+  transcription over synthesis, and the old linter passed it. §B.3 rewritten:
+  structure axis now requires the twelve schema sections (adds Preferences &
+  working style, Boundaries & sensitivities, Changelog), claim-contract axis
+  now requires cited third-person prose bullets (terminal `[eng_<id>, …]`
+  brackets, verbatim spans ≤ 12 words inside sentences; standalone quote
+  blocks and `[synthesis: …]` tag blocks are retired defect forms that fail
+  the lint). DoD "Exemplar lint" criterion rewritten to the same grammar
+  ("Claim lint passes"). The `engram-mirror-soul` SKILL.md rewritten to
+  v2.0.0 as the schema's operating summary (mandatory 12-section map, entry
+  grammar, nine-box pre-write checklist, changelog rules, canonical example
+  = the rebuilt live USER.md, anti-example = the pre-rebuild junkpile, with
+  a before/after pair). `dream-phase.prompt.md` step 3 rewritten to the
+  dossier grammar with a migration guard (a structure lint failure on a
+  schema-conformant file means the linter is stale — report, never rewrite
+  backward). `engram-gap-skeleton` SKILL.md lint references updated to the
+  citation-bracket contract. Companion tooling migration (linter §10
+  grammar, builder SECTIONS 9→12, battery fixtures, mutation anchors)
+  routed to forge as card t_70c804ba — see that
+  card's handoff for the same-window constraint: the tooling must land
+  before the next dream-phase run, else the linter is red on the good file.
+  OPEN (planner, this card): SOUL.md §2(b) + verification line + mirror
+  ownership bullet could not be edited this run — the harness
+  protected-instruction-file guard blocked the write (approval timed out,
+  headless run; block is explicit: no retry, no rerouting). The exact
+  amendment is staged as a ready-to-apply patch at
+  `engram-tools/SOUL-amendment-t_6f122dff.patch` in this worktree; nexus
+  applies it (or reroutes to a worker with an approved session) before the
+  forge tooling card closes.

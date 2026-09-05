@@ -135,9 +135,9 @@ open.
 2. **Hindsight peer-model drift** (`discovered:hindsight`): the peer model
    holds a belief, preference, or relationship assertion with low confidence
    or conflicting evidence; the store points to the unresolved question.
-3. **`USER.md` claim-contract lint** (`discovered:lint`): a claim has no
-   verbatim quote and no `[synthesis: <artifact_ids>]` tag — open a gap
-   instead of silently patching.
+3. **`USER.md` claim-contract lint** (`discovered:lint`): a claim entry lacks
+   its terminal artifact-id citation bracket — open a gap instead of
+   silently patching.
 4. **Interview follow-up** (`discovered:interview`): a probe surfaces a
    partial answer hinting at a deeper unknown — write a child annotation, not
    an extension of the same entry.
@@ -179,8 +179,8 @@ open.
 **Write procedure:**
 
 1. Load `gaps.md` and the current `USER.md`.
-2. Run claim-contract lint on `USER.md`: every non-quote claim must carry a
-   synthesis tag or have a matching gap.
+2. Run claim-contract lint on `USER.md`: every claim entry must carry its
+   terminal citation bracket or have a matching gap.
 3. Create or merge slot annotations: `discovered:lint` for each missing
    anchor, `discovered:hindsight` for each low-confidence Hindsight assertion
    without archive support.
