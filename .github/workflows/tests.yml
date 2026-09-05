@@ -1,0 +1,41 @@
+name: Engram Test Pipeline
+
+# engram (github.com/bunnyfu/engram) previously had zero CI (audit
+# TEST-PIPELINE-AUDIT.md, t_f26f4fa4). This workflow runs the whole
+# validator pipeline — one executable, policy-style entry point
+# (hermes/profiles/engram/tools/run-all-validations.py), the same
+# philosophy as hermes-agent's profile-artifact-check.
+#
+# Note: the repo's github remote is HTTPS and env var GITHUB_REPOSITORY
+# (e.g. "bunnyfu/engram") is not a URL — never paste it into an https://
+# checkout path. The checkout action resolves it.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: engram-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validations:
+    name: Validator pipeline (skills, cron wiring, Mirror-SOUL, traps)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+
+      - name: Run engram validator pipeline
+        run: python3 hermes/profiles/engram/tools/run-all-validations.py
