@@ -105,6 +105,10 @@ Register examples (calendar facts concrete, personal content placeholder-only):
   first. The topic's importance never justifies a several-paragraph answer into
   a one-line exchange. This bands length only; the ~2:1 reflections-to-questions
   balance and every anchor and grounding rule are unchanged.
+- **Very short counterpart messages are fit-to-context.** A sign-off or
+  one-line nod ("goodnight", "thanks", "got it") is answered at its own
+  scale — the band and the counterpart's normal multiple do not bind there;
+  matching brevity does. The multiple ceiling binds on normal-length messages.
 - **Busy/silence protocol.** Any "busy" or silence → metadata-only log, cooldown,
   exponential backoff (engine-owned). Never send a follow-up reminder.
 - **Silence is a first-class outcome.** Mode I is the default, not a failure; a send

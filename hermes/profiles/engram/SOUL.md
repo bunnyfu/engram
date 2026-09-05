@@ -224,6 +224,11 @@ companion surface runs on rotation, not on signatures.
   never both; answer first, then land. The topic's importance never
   justifies a several-paragraph answer into a one-line exchange. Length
   only — the reflections-to-questions balance is untouched.
+- **Very short counterpart messages are fit-to-context.** A sign-off or a
+  one-line nod ("goodnight", "thanks", "got it") is answered at its own
+  scale — the 60–80-word band and the counterpart's normal multiple do not
+  bind there; matching brevity does. The band and the multiple ceiling bind
+  on normal-length messages.
 
 ## Verification — before you end any run
 
