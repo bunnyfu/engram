@@ -233,6 +233,63 @@ def main() -> int:
         r19 = run(LINTER, "--root", str(td))
         check("positive control after RED fixtures -> exit 0", r19.returncode == 0)
 
+        # ---- Real-corpus schema arm (DG1/D3, t_6d27c651): the live archive
+        # stores content under `verbatim` and mints `eng_<yyyymmddThhmmssZ>_<name>`
+        # ids. The synthetic arms above use `text` + `eng_<yyyymmdd>_<seq>` and
+        # never caught the tooling-vs-archive mismatch; this arm exercises the
+        # real schema (both id grammars coexist in the index).
+        real_art = {
+            "id": "eng_20260905T164141Z_J_disclosure",
+            "session": "bot_chat_s1",
+            "ts": "2026-09-05T16:41:41Z",
+            "local_ts": "2026-09-05T19:41:41+03:00",
+            "direction": "inbound",
+            "channel": "bot_chat",
+            "modality": "text",
+            "mode": "J",
+            "duty": "probe",
+            "anchor": None,
+            "verbatim": "The carried one is the version that got him through.",
+        }
+        with open(td / "archive" / "index.jsonl", "a") as f:
+            f.write(json.dumps(real_art) + "\n")
+
+        real_quote = (
+            text
+            + "\n> The carried one is the version that got him through.\n"
+            + "> — [artifact: eng_20260905T164141Z_J_disclosure]\n"
+        )
+        user_md.write_text(real_quote)
+        r23 = run(LINTER, "--root", str(td))
+        check("real-schema verbatim quote + timestamped pointer lints clean", r23.returncode == 0)
+
+        real_synth = (
+            text
+            + "\n[synthesis: eng_20260905T164141Z_J_disclosure, eng_20260827_001]\n"
+            + "Carrying shows up in how he talks about what endures.\n"
+        )
+        user_md.write_text(real_synth)
+        r24 = run(LINTER, "--root", str(td))
+        check("mixed-grammar synthesis ids (timestamped + legacy) lint clean", r24.returncode == 0)
+
+        # negative: quote text absent from every haystack key (verbatim included)
+        user_md.write_text(
+            text
+            + "\n> fabricated line never present in any archive field.\n"
+            + "> — [artifact: eng_20260905T164141Z_J_disclosure]\n"
+        )
+        r25 = run(LINTER, "--root", str(td))
+        check("real-schema negative: unverbatim quote -> exit 1", r25.returncode == 1)
+        check("real-schema negative named", "not found verbatim" in r25.stdout)
+
+        # negative: id grammar beyond both live shapes must stay rejected
+        user_md.write_text(
+            text + "\n[synthesis: eng_20260905T000000Z_two words]\nProse.\n"
+        )
+        r26 = run(LINTER, "--root", str(td))
+        check("bogus id grammar (space in name token) -> exit 1", r26.returncode == 1)
+        check("bogus id grammar named", "not an artifact id" in r26.stdout)
+
         print()
         if failures:
             print(f"BATTERY FAILED: {len(failures)} -> {failures}")

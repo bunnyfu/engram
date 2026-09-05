@@ -36,7 +36,10 @@ import sys
 from pathlib import Path
 
 # Keep in sync with tools/mirror_soul_builder.py (standalone scripts, no imports).
-TITLE = "# USER.md — Mirror-SOUL of the subject ('caleb')"
+# Title grammar (DG1, t_6d27c651): the subject NAME token is corpus-specific —
+# the scaffold default is 'caleb', the pilot corpus subject is 'elon'. The
+# linter pins the line STRUCTURE and leaves the name token free.
+TITLE_RE = re.compile(r"^# USER\.md — Mirror-SOUL of the subject \('\S+'\)$")
 SECTIONS = [
     "Identity",
     "Biography",
@@ -50,11 +53,17 @@ SECTIONS = [
 ]
 
 SYNTHESIS_TAG_RE = re.compile(r"^\[synthesis:\s*([^\]]+)\]$")
-ARTIFACT_ID_RE = re.compile(r"eng_\d{8}_\d+")
+# Artifact ids — two live grammars (DG1, t_6d27c651): legacy
+# `eng_<yyyymmdd>_<seq>` (spec §B examples, skill docs) AND the timestamped
+# `eng_<yyyymmddThhmmssZ>_<name>` shape actually minted by real archive
+# writes (append_artifact callers). Both resolve; nothing else does.
+ARTIFACT_ID_RE = re.compile(r"eng_\d{8}_\d+|eng_\d{8}T\d{6}Z_\S+")
 # §B.2: the pointer is a terminal line — it must be the ENTIRE line content
 # (after the `> ` blockquote prefix). A mid-line match would silently drop the
 # surrounding text from the verbatim check (critic fix round 1, RED-2).
-POINTER_RE = re.compile(r"^—\s*\[artifact:\s*(eng_\d{8}_\d+)\s*\]$")
+POINTER_RE = re.compile(
+    r"^—\s*\[artifact:\s*(eng_\d{8}_\d+|eng_\d{8}T\d{6}Z_\S+)\s*\]$"
+)
 POINTER_MARKER_RE = re.compile(r"—\s*\[artifact:")
 
 BLOCKQUOTE_PREFIX = ">"
@@ -229,11 +238,13 @@ def check_claims(
 
     artifact_ids = {a.get("id") for a in artifacts if isinstance(a, dict)}
     # Verbatim haystack: every text payload the archive index actually holds.
+    # Real archive entries (DG1, t_6d27c651) carry content under `verbatim`;
+    # the older keys remain supported for spec-shaped synthetic fixtures.
     haystacks: list[str] = []
     for a in artifacts:
         if not isinstance(a, dict):
             continue
-        for key in ("text", "quote", "transcript", "content"):
+        for key in ("verbatim", "text", "quote", "transcript", "content"):
             v = a.get(key)
             if isinstance(v, str):
                 haystacks.append(v)
@@ -303,7 +314,7 @@ def check_claims(
                     if not ARTIFACT_ID_RE.fullmatch(aid):
                         errors.append(
                             ("F5", f"line {start}: synthesis id `{aid}` is not an artifact id "
-                             "(expected eng_<yyyymmdd>_<seq>)"))
+                             "(expected eng_<yyyymmdd>_<seq> or eng_<yyyymmddThhmmssZ>_<name>)"))
                     elif aid not in artifact_ids:
                         errors.append(
                             ("F5", f"line {start}: synthesis id `{aid}` not found in archive/index.jsonl"))
@@ -338,8 +349,12 @@ def lint(root: Path) -> tuple[list[tuple[str, str]], dict]:
     text = user_md.read_text()
     lines = text.splitlines()
 
-    if lines[:1] != [TITLE]:
-        errors.append(("F-structure", f"line 1: title must be exactly `{TITLE}`"))
+    title_ok = lines and TITLE_RE.match(lines[0])
+    if not title_ok:
+        errors.append((
+            "F-structure",
+            "line 1: title must match `# USER.md — Mirror-SOUL of the subject ('<name>')` "
+            f"(got `{lines[0] if lines else '<empty file>'}`)"))
     errors += check_provenance(lines)
     errors += check_title_zone(lines)
     struct_errors, section_lines = check_structure(lines)
