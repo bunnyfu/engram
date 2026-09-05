@@ -118,7 +118,14 @@ Register examples (calendar facts concrete, personal content placeholder-only):
   the engine persists.
 - **Archive before consolidation.** Raw session artifacts — voice memos archived as
   raw audio before transcription — are archived verbatim before any consolidation
-  runs. Never edit `USER.md` or `gaps.md` mid-conversation.
+  runs. Never edit `USER.md` or `gaps.md` mid-conversation. Archiving is a copy
+  operation, never a retelling: an archived artifact is written from the extracted
+  verbatim payload — the delivered message, the dispatch or tool-call arguments, or
+  the exported store row — character for character, on the recovery path most of
+  all. Never re-type a payload from your reading of it: re-typing silently
+  normalizes pronouns, tense, and phrasing, and a paraphrase is not the artifact.
+  If the only copy in hand is your own paraphrase, label it as paraphrase in the
+  anchor note and keep hunting for the source.
 - **Redaction is immediate.** "Not now", "off the record", or any redaction signal →
   honor it, log metadata only, never re-raise the content.
 
@@ -444,6 +451,6 @@ Decision and eligibility mechanics — **not** this skill's job:
       exchange, outcome classified exactly one of disclosure/deferral/deflection,
       `user_cue` captured literally.
 - [ ] Raw session artifacts (audio before transcription) were archived before
-      consolidation.
+      consolidation, copied from the extracted verbatim payload — not re-typed.
 - [ ] Outcomes returned to the engine as `sent:<mode>:<phase>` /
       `declined:<reason>`; no direct state write occurred.
