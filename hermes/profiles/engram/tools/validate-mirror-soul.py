@@ -5,6 +5,7 @@ Deterministic post-write linter for the Engram profile's USER.md (spec:
 ~/.hermes/plans/2026-09-05-mirror-soul-usermd-builder-spec.md, §E --mode lint).
 Validates:
   (a) structure — the nine fixed sections, exact headings, exact order (§B);
+      the title zone holds only the title and the `Build:` provenance line;
   (b) claim contract at 100%, no sampling (§B.2 / mirror-soul skill):
       every non-heading, non-quote block begins with a resolvable
       [synthesis: ...] tag; every quote block's text appears verbatim in the
@@ -50,8 +51,11 @@ SECTIONS = [
 
 SYNTHESIS_TAG_RE = re.compile(r"^\[synthesis:\s*([^\]]+)\]$")
 ARTIFACT_ID_RE = re.compile(r"eng_\d{8}_\d+")
-POINTER_RE = re.compile(r"—\s*\[artifact:\s*(eng_\d{8}_\d+)\s*\]")
-CONFIDENCE_RE = re.compile(r"^\s*confidence:\s*(hint|pattern|firm)\s*$")
+# §B.2: the pointer is a terminal line — it must be the ENTIRE line content
+# (after the `> ` blockquote prefix). A mid-line match would silently drop the
+# surrounding text from the verbatim check (critic fix round 1, RED-2).
+POINTER_RE = re.compile(r"^—\s*\[artifact:\s*(eng_\d{8}_\d+)\s*\]$")
+POINTER_MARKER_RE = re.compile(r"—\s*\[artifact:")
 
 BLOCKQUOTE_PREFIX = ">"
 
@@ -137,6 +141,48 @@ def check_structure(lines: list[str]) -> tuple[list[tuple[str, str]], dict[str, 
     return errors, found
 
 
+def check_title_zone(lines: list[str]) -> list[tuple[str, str]]:
+    """§B title zone: line 1 (title), line 2 (`Build:` provenance), and
+    spec-legal `Rebuild:` provenance lines may precede the first `##` heading.
+    A Rebuild line must match the provenance grammar (`Rebuild: <producer>
+    <ISO-8601-UTC>`); anything else non-blank lands before every section bound
+    and would escape the claim contract entirely — fail it closed
+    (critic fix round 1, RED-1)."""
+    errors: list[tuple[str, str]] = []
+    first_section = next(
+        (i for i, line in enumerate(lines, start=1) if line.startswith("## ")),
+        None,
+    )
+    candidates = (
+        range(3, len(lines) + 1) if first_section is None else range(3, first_section)
+    )
+    for i in candidates:
+        line = lines[i - 1]
+        if not line.strip():
+            continue
+        if line.startswith("Rebuild: "):
+            parts = line[len("Rebuild: "):].split()
+            # producer is ONE identifier-like token (`Rebuild: <producer> <ts>`);
+            # multi-token lines are prose smuggled into the title zone
+            if (len(parts) != 2
+                    or not re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$", parts[-1])
+                    or not re.fullmatch(r"[A-Za-z0-9_.\-]+", parts[0])):
+                errors.append((
+                    "F-provenance",
+                    f"line {i}: malformed Rebuild line (expected exactly "
+                    "`Rebuild: <producer> <ISO-8601-UTC>` — producer is a single "
+                    "identifier-like token, no free prose): `{line}`"))
+            continue
+        errors.append((
+            "F-structure",
+            f"line {i}: content before the first section heading — the title "
+            "zone holds only line 1 (title), line 2 (`Build:` provenance) and "
+            "spec-legal `Rebuild:` provenance lines; every claim must live "
+            "inside one of the nine sections",
+        ))
+    return errors
+
+
 def block_sections(lines: list[str], section_lines: dict[str, int]) -> list[tuple[int, str]]:
     """Map each body line to its section. Headings and blank lines are never
     claim blocks; lines before the first section heading belong to none.
@@ -168,8 +214,9 @@ def check_claims(
     Grammar (§B.2): a block is a maximal run of consecutive non-empty body
     lines. Quote lines are blockquotes (`>`); the first body line of every
     non-quote block must be a resolvable `[synthesis: ...]` tag. Quote blocks
-    end with a pointer line `— [artifact: eng_...]`; their quoted text must
-    appear verbatim in the raw archive. Synthesis tags resolve against the
+    end with a pointer line `— [artifact: eng_...]` spanning the entire line;
+    their quoted text must appear verbatim in the raw archive. Synthesis tags
+    resolve against the
     archive index. Returns (errors, unanchored_claims).
 
     anchors_verifiable=False (archive index missing/unparseable) skips the
@@ -195,30 +242,36 @@ def check_claims(
     if not body:
         return errors, unanchored
 
-    # Group consecutive body lines into blocks.
-    blocks: list[tuple[int, int, str]] = []  # (start, end, section)
-    for lineno, section in body:
-        if blocks and blocks[-1][1] == lineno - 1 and blocks[-1][2] == section:
-            blocks[-1] = (blocks[-1][0], lineno, section)
-        else:
-            blocks.append((lineno, lineno, section))
-
-    for start, end, section in blocks:
+    for start, end, section in group_blocks(body):
         block_lines = [(i, lines[i - 1]) for i in range(start, end + 1)]
         first = block_lines[0][1]
         if first.lstrip().startswith(BLOCKQUOTE_PREFIX):
             # Quote block: pointer line required, text verbatim in archive.
             pointer_ids = []
             quoted = []
+            had_malformed_pointer = False
             for i, text in block_lines:
                 content = text.lstrip()[1:].lstrip()
-                m = POINTER_RE.search(content)
-                if m:
-                    pointer_ids.append(m.group(1))
-                elif content:
+                if not content:
+                    continue
+                pm = POINTER_RE.match(content)
+                if pm:
+                    pointer_ids.append(pm.group(1))
+                elif POINTER_MARKER_RE.search(content):
+                    # A pointer fragment inside a prose line smuggles its
+                    # surroundings past the verbatim check — name it and keep
+                    # the text in the verbatim haystack (RED-2).
+                    had_malformed_pointer = True
+                    errors.append((
+                        "F4", f"line {i}: malformed pointer line — "
+                        "`— [artifact: eng_<id>]` must be the entire line, exactly "
+                        "`> — [artifact: eng_<id>]` (no text before or after)"))
+                    unanchored.append({"line": i, "section": section,
+                                       "kind": "malformed-pointer"})
+                else:
                     quoted.append(content)
             quote_text = " ".join(quoted).strip()
-            if not pointer_ids:
+            if not pointer_ids and not had_malformed_pointer:
                 errors.append(
                     ("F4", f"line {start}: quote block lacks a source pointer "
                      "`> — [artifact: eng_<id>]`"))
@@ -288,6 +341,7 @@ def lint(root: Path) -> tuple[list[tuple[str, str]], dict]:
     if lines[:1] != [TITLE]:
         errors.append(("F-structure", f"line 1: title must be exactly `{TITLE}`"))
     errors += check_provenance(lines)
+    errors += check_title_zone(lines)
     struct_errors, section_lines = check_structure(lines)
     errors += struct_errors
 
@@ -302,10 +356,10 @@ def lint(root: Path) -> tuple[list[tuple[str, str]], dict]:
     counts = {
         "sections_found": len([s for s in SECTIONS if s in section_lines]),
         "quote_blocks": sum(
-            1 for start, end, _ in _blocks(lines, section_lines)
+            1 for start, end, _ in group_blocks(block_sections(lines, section_lines))
             if lines[start - 1].lstrip().startswith(BLOCKQUOTE_PREFIX)),
         "synthesis_blocks": sum(
-            1 for start, _, _ in _blocks(lines, section_lines)
+            1 for start, _, _ in group_blocks(block_sections(lines, section_lines))
             if SYNTHESIS_TAG_RE.match(lines[start - 1].strip())),
         "unanchored_claims": len(unanchored),
     }
@@ -320,8 +374,10 @@ def lint(root: Path) -> tuple[list[tuple[str, str]], dict]:
     return errors, summary
 
 
-def _blocks(lines: list[str], section_lines: dict[str, int]) -> list[tuple[int, int, str]]:
-    body = block_sections(lines, section_lines)
+def group_blocks(body: list[tuple[int, str]]) -> list[tuple[int, int, str]]:
+    """Group consecutive (lineno, section) body lines into
+    (start, end, section) blocks — the single grouping implementation shared
+    by check_claims and the summary counts (was duplicated as _blocks)."""
     blocks: list[tuple[int, int, str]] = []
     for lineno, section in body:
         if blocks and blocks[-1][1] == lineno - 1 and blocks[-1][2] == section:

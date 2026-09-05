@@ -77,11 +77,7 @@ def main() -> int:
         check("G1 ENGRAM_PROFILE_ROOT knob", r4.returncode == 0 and (td_env / "USER.md").exists())
 
         # ---- G5 refusal: scaffold over content-bearing USER.md
-        (td / "USER.md").write_text(
-            text.replace(" scaffold ", " 2026-09-04T03:14:15Z rebuild ")
-            if " scaffold " in text else text + "\ncontent\n"
-        )
-        # make it content-bearing by stripping the marker
+        # (content-bearing = provenance line stripped of the scaffold marker)
         content = user_md.read_text()
         content_lines = [l for l in content.splitlines() if "scaffold" not in l]
         user_md.write_text("\n".join(content_lines) + "\n")
@@ -172,6 +168,70 @@ def main() -> int:
         user_md.write_text(dates_ok)
         r14 = run(LINTER, "--root", str(td))
         check("dates entry with anchor lints clean", r14.returncode == 0)
+
+        # ---- RED-1 (critic fix round 1, blocking #1): body lines before the
+        # first `##` heading must not escape the claim contract.
+        pre_prose = text.splitlines()
+        pre_prose.insert(2, "The subject is a California resident.")
+        user_md.write_text("\n".join(pre_prose) + "\n")
+        r15 = run(LINTER, "--root", str(td))
+        check("pre-section prose -> exit 1", r15.returncode == 1)
+        check("pre-section prose named", "before the first section heading" in r15.stdout)
+
+        # same zone, fabricated quote block w/ valid pointer (critic probe V2)
+        pre_quote = text.splitlines()
+        pre_quote.insert(2, "> I routinely fly to the moon on Tuesdays.")
+        pre_quote.insert(3, "> — [artifact: eng_20260827_001]")
+        user_md.write_text("\n".join(pre_quote) + "\n")
+        r16 = run(LINTER, "--root", str(td))
+        check("pre-section quote block -> exit 1", r16.returncode == 1)
+
+        # ---- RED-2 (critic fix round 1, blocking #2): text around the pointer
+        # span must not be dropped from the verbatim check.
+        user_md.write_text(
+            text + "\n> totally fabricated claim — [artifact: eng_20260827_001]\n"
+        )
+        r17 = run(LINTER, "--root", str(td))
+        check("fabricated text before pointer -> exit 1", r17.returncode == 1)
+        check("malformed pointer named", "malformed pointer" in r17.stdout)
+
+        # trailing residue after a mid-line pointer must fail too (critic R2b)
+        user_md.write_text(
+            text + "\n> He said — [artifact: eng_20260827_001] and then flew to the moon.\n"
+        )
+        r18 = run(LINTER, "--root", str(td))
+        check("text after pointer -> exit 1", r18.returncode == 1)
+
+        # ---- title zone spec-conformance: §B allows appended `Rebuild:`
+        # provenance lines — a well-formed one must still lint clean...
+        with_rebuild = text.splitlines()
+        with_rebuild.insert(2, "Rebuild: mirror_soul_builder.py 2026-09-06T00:00:00Z")
+        user_md.write_text("\n".join(with_rebuild) + "\n")
+        r20 = run(LINTER, "--root", str(td))
+        check("spec-legal Rebuild line lints clean", r20.returncode == 0)
+        # ...a malformed one must not
+        bad_rebuild = text.splitlines()
+        bad_rebuild.insert(2, "Rebuild: free prose pretending to be provenance")
+        user_md.write_text("\n".join(bad_rebuild) + "\n")
+        r21 = run(LINTER, "--root", str(td))
+        check("malformed Rebuild line -> exit 1", r21.returncode == 1)
+        check("malformed Rebuild named", "malformed Rebuild" in r21.stdout)
+        # prose smuggled through a well-formed-looking Rebuild line must fail:
+        # tokens are producer identifiers, never free text
+        smuggle_rebuild = text.splitlines()
+        smuggle_rebuild.insert(2, "Rebuild: The subject is a California resident. 2026-09-06T00:00:00Z")
+        user_md.write_text("\n".join(smuggle_rebuild) + "\n")
+        r22 = run(LINTER, "--root", str(td))
+        check("Rebuild prose smuggle -> exit 1", r22.returncode == 1)
+
+        # ---- positive control after the RED fixtures
+        with open(td / "archive" / "index.jsonl", "a") as f:
+            f.write(json.dumps(art) + "\n")
+        user_md.write_text(
+            text + "\n> I always hated waiting in lines.\n> — [artifact: eng_20260827_001]\n"
+        )
+        r19 = run(LINTER, "--root", str(td))
+        check("positive control after RED fixtures -> exit 0", r19.returncode == 0)
 
         print()
         if failures:
