@@ -18,6 +18,10 @@ declared success contract:
   validate-mirror-soul-mutations.py → exit 0, "MUTATIONS PASSED (all arms)"
                                     (red-when-broken: sabotaged machinery
                                     must turn the battery red)
+  validate-d1-gaps-parse.py       → exit 0, "D1 GAPS-PARSE VALIDATION PASSED"
+                                    (D1 regression: canonical gaps.md
+                                    null/none scalars parse to None; Mode J
+                                    predicate live on the canonical format)
   validate-trap-*.py              → exit 0, "PASSED" (T5/T6/T7/T8)
 
 Standalone, stdlib-only, sibling conventions: prints
@@ -52,6 +56,7 @@ STATIC_ARMS = [
     ("validate-cron-prompts.py", ("CRON PROMPT VALIDATION PASSED",)),
     ("validate-mirror-soul-battery.py", ("BATTERY PASSED (all checks)",)),
     ("validate-mirror-soul-mutations.py", ("MUTATIONS PASSED (all arms)",)),
+    ("validate-d1-gaps-parse.py", ("D1 GAPS-PARSE VALIDATION PASSED",)),
     ("validate-trap-t5.py", ("PASSED",)),
     ("validate-trap-t7-cold-start.py", ("PASSED",)),
     ("validate-trap-t8-velocity.py", ("PASSED",)),

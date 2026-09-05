@@ -410,28 +410,53 @@ def cap_checks(state: dict[str, Any], now: datetime | None = None) -> tuple[bool
     return True, ""
 
 
-def load_gaps() -> list[dict[str, Any]]:
-    gaps_path = REPO_ROOT / "gaps.md"
-    if not gaps_path.exists():
-        return []
-    text = gaps_path.read_text()
-    # Parse simple YAML-like frontmatter blocks separated by ---
-    entries = []
+def parse_scalar(raw: str) -> Any:
+    """Parse a gaps.md scalar the way YAML would: bare null/none (any case)
+    and the empty string become Python None, quoted forms keep their literal
+    string value, everything else passes through stripped.
+
+    Defect D1 (t2-findings.md): the ledger's canonical `avoidance_named: null`
+    parsed as the truthy STRING "null", so director_mode_j's
+    `if avoidance: continue` skipped every slot — the Mode J eligibility
+    predicate was dead as shipped. Quote-awareness is deliberate: `none: "null"`
+    must stay a string, and a literal `"null"` string written with quotes is
+    NOT normalized (fail-closed).
+    """
+    value = raw.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in ("'", '"'):
+        return value[1:-1]
+    if value == "" or value.lower() in ("null", "none"):
+        return None
+    return value
+
+
+def _parse_gaps_text(text: str) -> list[dict[str, Any]]:
+    """Shared gaps.md ledger parser (frontmatter blocks separated by ---).
+
+    Single source of truth for both consumers — engram_state's own loader and
+    director_mode_j (which re-exports it as load_gaps) — so the two can never
+    drift apart again; that drift surface is exactly where D1 lived.
+    """
+    entries: list[dict[str, Any]] = []
     for raw in re.split(r"\n---\s*\n", text):
         raw = raw.strip()
         if not raw:
             continue
-        try:
-            entry = {}
-            for line in raw.splitlines():
-                if ":" in line and not line.startswith("#"):
-                    key, val = line.split(":", 1)
-                    entry[key.strip()] = val.strip().strip('"')
-            if "id" in entry:
-                entries.append(entry)
-        except Exception:
-            continue
+        entry: dict[str, Any] = {}
+        for line in raw.splitlines():
+            if ":" in line and not line.startswith("#"):
+                key, val = line.split(":", 1)
+                entry[key.strip()] = parse_scalar(val)
+        if "id" in entry:
+            entries.append(entry)
     return entries
+
+
+def load_gaps() -> list[dict[str, Any]]:
+    gaps_path = REPO_ROOT / "gaps.md"
+    if not gaps_path.exists():
+        return []
+    return _parse_gaps_text(gaps_path.read_text())
 
 
 def gap_pressure_active(state: dict[str, Any]) -> bool:
@@ -482,10 +507,20 @@ def mode_eligibility(
     state: dict[str, Any],
     anchor_ref: Any = None,
     now: datetime | None = None,
+    anchor_required: bool = False,
 ) -> dict[str, Any]:
     """Eligibility gates for one candidate mode: stage gate (cap check 6), gap
     pacing, rapport peak, and anchor verification (cap check 7). Checks 1–5 are
-    cap_checks(); these narrow selection with fall-through, never a bail."""
+    cap_checks(); these narrow selection with fall-through, never a bail.
+
+    anchor_required=True marks the ledger-driven path (select_mode): there a
+    None anchor is a defect, not an open gate — the canonical ledger spells
+    "no exemplar" as bare `none`/`null`, which the parser normalizes to None,
+    so a truthiness-only guard would silently skip anchor verification for
+    every such slot (fail-open, the D1-adjacent trap). Direct mode_eligibility
+    callers may pass anchor_ref=None deliberately (probing stage/pacing arms
+    only); default False preserves that contract.
+    """
     if now is None:
         now = now_utc()
     stage = state.get("relationship_stage") or "unknown"
@@ -517,7 +552,12 @@ def mode_eligibility(
         reasons.append("no_rapport_peak")
 
     # Anchor verification (deterministic part only).
-    if anchor_ref is not None:
+    if anchor_required and anchor_ref is None:
+        # Ledger-driven path with no anchor after normalization: the slot
+        # carries bare `none`/`null` (or nothing). Fail closed — a send needs
+        # a verified anchor; "no anchor" is never "no check".
+        reasons.append("anchor_none")
+    elif anchor_ref is not None:
         if not verify_anchor(anchor_ref)["verified"]:
             reasons.append("anchor_unverified")
 
@@ -542,7 +582,8 @@ def select_mode(state: dict[str, Any]) -> dict[str, Any]:
         if str(gap.get("status", "open")).lower() not in ("open", "partial"):
             continue
         eligibility = mode_eligibility(
-            "A", state, anchor_ref=gap.get("exemplar"), now=now
+            "A", state, anchor_ref=gap.get("exemplar"), now=now,
+            anchor_required=True,
         )
         if eligibility["eligible"]:
             return {
