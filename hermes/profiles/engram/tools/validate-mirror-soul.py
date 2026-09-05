@@ -161,6 +161,7 @@ def check_claims(
     lines: list[str],
     artifacts: list[dict],
     section_lines: dict[str, int],
+    anchors_verifiable: bool = True,
 ) -> tuple[list[tuple[str, str]], list[dict]]:
     """(b) claim contract at 100% and (c) dates-block anchors.
 
@@ -169,10 +170,14 @@ def check_claims(
     non-quote block must be a resolvable `[synthesis: ...]` tag. Quote blocks
     end with a pointer line `— [artifact: eng_...]`; their quoted text must
     appear verbatim in the raw archive. Synthesis tags resolve against the
-    archive index. Returns (errors, unanchored_claims)."""
+    archive index. Returns (errors, unanchored_claims).
+
+    anchors_verifiable=False (archive index missing/unparseable) skips the
+    claim checks entirely — without anchors nothing is decidable (§F3); the
+    F3 error already fails the run."""
     errors: list[tuple[str, str]] = []
     unanchored: list[dict] = []
-    if not artifacts:
+    if not anchors_verifiable:
         return errors, unanchored
 
     artifact_ids = {a.get("id") for a in artifacts if isinstance(a, dict)}
@@ -289,7 +294,9 @@ def lint(root: Path) -> tuple[list[tuple[str, str]], dict]:
     artifacts, load_errors = load_archive(root)
     errors += load_errors
 
-    claim_errors, unanchored = check_claims(lines, artifacts, section_lines)
+    claim_errors, unanchored = check_claims(
+        lines, artifacts, section_lines, anchors_verifiable=not load_errors
+    )
     errors += claim_errors
 
     counts = {
