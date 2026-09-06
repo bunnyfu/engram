@@ -42,7 +42,7 @@ def make_state(ts: datetime) -> dict:
         "session_exchange_count": 6,
         "session_agent_turn_count": 3,
         "session_last_agent_mode": "C",
-        "session_thread_id": ["mattermost", "11q5an3haffxfpo6kfradxp75y", "thread-abc"],
+        "session_thread_id": ["mattermost", "<subject-channel-id>", "thread-abc"],
         "session_wind_down_phase": "cooling",
         "session_close_sent_at": ts.isoformat(),
         "session_close_mode": "C",
@@ -57,7 +57,7 @@ def make_state(ts: datetime) -> dict:
 def make_artifact(ts: datetime) -> dict:
     return {
         "platform": "mattermost",
-        "channel_id": "11q5an3haffxfpo6kfradxp75y",
+        "channel_id": "<subject-channel-id>",
         "thread_id": "thread-abc",
         "sender": "subject",
         "content": "Actually, one thing did come to mind.",

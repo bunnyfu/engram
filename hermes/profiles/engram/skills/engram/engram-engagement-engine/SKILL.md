@@ -55,7 +55,7 @@ interview skill copies). Reference implementation: `tools/engram_state.py`.
   "redaction_cooldown_until": "2026-08-27T21:00:00Z",
   "last_user_contact_ts": "2026-08-27T19:30:00Z",
   "session_active": true,
-  "session_thread_id": ["mattermost", "11q5an3haffxfpo6kfradxp75y", null],
+  "session_thread_id": ["mattermost", "<subject-channel-id>", null],
   "session_opened_at": "2026-08-28T12:00:00Z",
   "session_opened_by": "agent",
   "session_exchange_count": 3,

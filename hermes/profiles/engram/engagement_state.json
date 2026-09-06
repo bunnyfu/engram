@@ -39,7 +39,7 @@
   "session_recency_threshold_seconds": 900,
   "session_thread_id": [
     "mattermost",
-    "11q5an3haffxfpo6kfradxp75y",
+    "<subject-channel-id>",
     null
   ],
   "session_wind_down_phase": "open",
