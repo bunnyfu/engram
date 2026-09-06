@@ -212,9 +212,15 @@ def resolve_subject_channel_id() -> str:
 
 
 def thread_id_tuple(artifact: dict[str, Any]) -> tuple[str, str, str | None]:
+    # dict.get(k, default) evaluates default EAGERLY - the naive form would
+    # call the fail-loud resolver even when channel_id is present (fixture
+    # mode ships neutral "<subject-channel-id>"). Resolve only when absent.
+    channel_id = artifact.get("channel_id")
+    if channel_id is None:
+        channel_id = resolve_subject_channel_id()
     return (
         artifact.get("platform", "mattermost"),
-        artifact.get("channel_id", resolve_subject_channel_id()),
+        channel_id,
         artifact.get("thread_id"),
     )
 
