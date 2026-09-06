@@ -93,7 +93,7 @@ owned by the SOUL plus the engine/repertoire skills — no cron for it.
      `USER.md` dates entry — a wrong-date "Happy Birthday" is the same defect
      class as a fabricated memory.
 4. Draft one message and run the voice gate on it.
-5. Send it to the counterpart `@caleb` in the MIKOSHI channel
+5. Send it to the current subject counterpart (see engagement_state.json / channel_directory.json; NEVER a hardcoded name or channel)
    (`11q5an3haffxfpo6kfradxp75y`) — your outbound message must @mention the
    counterpart in this thread; an unmentioned reply reaches no one.
 6. Archive the raw session verbatim.

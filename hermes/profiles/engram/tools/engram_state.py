@@ -185,24 +185,31 @@ def append_artifact(artifact: dict[str, Any]) -> None:
         f.write(json.dumps(artifact, default=str) + "\n")
 
 
-def resolve_mikoshi_channel_id() -> str:
-    """Read MIKOSHI channel ID from engram channel_directory.json."""
+def resolve_subject_channel_id() -> str:
+    """Read the subject channel ID from engram channel_directory.json.
+
+    Cross-deployment residue guard (2026-09-06): this must resolve from the
+    CURRENT deployment's channel_directory.json entry named SUBJECT_HANDLE.
+    No hardcoded fallback channel is ever returned - mist/MIKOSHI residue
+    burned us once; fail loudly instead.
+    """
     channel_dir = PROFILE_ROOT / "channel_directory.json"
     if channel_dir.exists():
         data = json.loads(channel_dir.read_text())
         for item in data.values():
-            if isinstance(item, dict) and item.get("name") == "caleb":
+            if isinstance(item, dict) and item.get("name") == SUBJECT_HANDLE:
                 return item["id"]
-            if isinstance(item, str):
-                # simpler flat format
-                continue
-    return "11q5an3haffxfpo6kfradxp75y"
+    raise RuntimeError(
+        f"channel_directory.json has no entry named {SUBJECT_HANDLE!r} - "
+        "refusing to fall back to any hardcoded channel (cross-deployment "
+        "residue guard)"
+    )
 
 
 def thread_id_tuple(artifact: dict[str, Any]) -> tuple[str, str, str | None]:
     return (
         artifact.get("platform", "mattermost"),
-        artifact.get("channel_id", resolve_mikoshi_channel_id()),
+        artifact.get("channel_id", resolve_subject_channel_id()),
         artifact.get("thread_id"),
     )
 
@@ -620,7 +627,7 @@ def record_send(mode: str, phase: str | None = None, gap_id: str | None = None) 
     if mode != "I":
         if not state.get("session_active", False):
             state["session_active"] = True
-            state["session_thread_id"] = ["mattermost", resolve_mikoshi_channel_id(), None]
+            state["session_thread_id"] = ["mattermost", resolve_subject_channel_id(), None]
             state["session_opened_at"] = iso(now)
             state["session_opened_by"] = "agent"
             state["session_exchange_count"] = 1

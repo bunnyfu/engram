@@ -31,7 +31,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 # Keep in sync with tools/validate-mirror-soul.py (standalone scripts, no imports).
-TITLE = "# USER.md — Mirror-SOUL of the subject ('caleb')"
+TITLE = "# USER.md — Mirror-SOUL of the subject (SUBJECT_HANDLE)"
 SECTIONS = [
     "Identity",
     "Biography",
