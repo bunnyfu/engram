@@ -26,6 +26,11 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = Path(os.environ.get("ENGRAM_STATE_ROOT", str(ROOT)))
 PROFILE_ROOT = ROOT
+# Subject identity is per-deployment (cross-deployment residue guard,
+# 2026-09-06): resolve at import time, overridable per deployment via
+# ENGRAM_SUBJECT_HANDLE. Default 'elon' = the pilot deployment's subject in
+# channel_directory.json. No hardcoded channel fallback anywhere.
+SUBJECT_HANDLE = os.environ.get("ENGRAM_SUBJECT_HANDLE", "elon")
 STATE_PATH = REPO_ROOT / "engagement_state.json"
 ARCHIVE_DIR = REPO_ROOT / "archive"
 ARCHIVE_INDEX = ARCHIVE_DIR / "index.jsonl"

@@ -30,8 +30,10 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-# Keep in sync with tools/validate-mirror-soul.py (standalone scripts, no imports).
-TITLE = "# USER.md — Mirror-SOUL of the subject (SUBJECT_HANDLE)"
+# Keep in sync with tools/validate-mirror-soul.py (standalone scripts, no
+# imports). TITLE_RE pins line STRUCTURE and leaves the name token free.
+_SUBJECT_HANDLE = os.environ.get("ENGRAM_SUBJECT_HANDLE", "elon")
+TITLE = f"# USER.md — Mirror-SOUL of the subject ('{_SUBJECT_HANDLE}')"
 SECTIONS = [
     "Identity",
     "Biography",
