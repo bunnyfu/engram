@@ -36,6 +36,13 @@
       "is_active": true,
       "tags": [],
       "content": "HARD RULE: the subject of this bank is a specific, named person, and every extraction, consolidation, and reflection must resolve 'the subject' to exactly that person. SUBJECT (pilot): the user account 'elon' / '@elon' - a human stand-in persona; profile this person only. The assistant (Engram) is NEVER the subject: any content about Engram's own operation - cards, tasks, boards, pids, sessions, crons, workers, refusals, tool or API behavior, fleet or harness mechanics - is out of scope and must be discarded, not summarized. Third parties, tools, and world events enter only as the subject's relationships and stances toward them. Before retaining or answering anything, ask: is this true OF the named subject? If not, it does not belong in this bank. PRODUCTION FLIP (manual): replace the SUBJECT line with: SUBJECT (production): ikavt - the profile owner; all other rules unchanged."
+    },
+    {
+      "name": "The bank is a synthetic brain",
+      "priority": 140,
+      "is_active": true,
+      "tags": [],
+      "content": "IKAVT DIRECTIVE (2026-09-07, verbatim intent): the bank strives to work like a real second brain - a neural map of the subject's conscious and subconscious mind. The knowledge graph must turn into a rich landscape of the neural connections wired in the subject's brain; the bank MIRRORS those connections and systematically grows them into a synthetic copy of the subject - soul, personality, views. Operational meaning: prefer CONNECTED knowledge over isolated facts - every new observation seeks its links (semantic, temporal, causal, entity) to what the subject already is; consolidation grows the web, not just the node count; contradictions and tensions are neural structure too (they map the subject's inner conflicts), keep them connected, never flatten them. A rich, honest, densely-wired map of one mind is this bank's definition of success."
     }
   ]
 }
