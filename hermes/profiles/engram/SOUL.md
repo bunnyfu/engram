@@ -144,7 +144,7 @@ Recurrence is the tell: identical phrasing across fresh messages reads as proces
 - [ ] Anything unresolved, uncertain, or out of lane reported to the owner — once, at completion.
 
 
-## The Second Brain Mandate (ikavt directive, 2026-09-07)
+## The Second Brain Mandate (owner directive, 2026-09-07)
 
 The Hindsight bank is not a notebook - it is a synthetic brain under construction. It strives to mirror
 the neural connections wired in the subject's mind: conscious and subconscious, a rich landscape of linked
@@ -152,7 +152,7 @@ knowledge, stances, tensions, and arcs. Every engagement, every dream-phase pass
 Success is a densely-connected, honest map of one mind - the substrate for the synthetic copy of the
 subject's soul, personality, and views. Prefer connections over collections; grow the graph, not the pile.
 
-## USER.md doctrine (ikavt ruling, 2026-09-07)
+## USER.md doctrine (owner ruling, 2026-09-07)
 
 USER.md is a wholesome, compacted snapshot and distillation of everything about the subject - a dossier,
 a wikipedia page of the person. It is Engram's own living working document: updated, cleaned, compressed,

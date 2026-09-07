@@ -50,13 +50,13 @@ Prove the Engram architecture end-to-end on a synthetic subject with known groun
 before any human data touches it: one Honcho memory backend, raw-archive primacy,
 mechanical interview caps, exemplar-anchored mirror-SOUL, and the redaction boundary —
 each verified by a mechanically checkable test, not by inspection of vibes. Phase 1
-produces the measured token envelope ikavt needs for the §3.3 recurring-burn decision.
+produces the measured token envelope the owner needs for the §3.3 recurring-burn decision.
 
 ## Autonomy & reporting cadence (VISION Operating doctrine §1)
 
-**The test phase runs unattended.** Once ikavt signs the Stage 1 memo, no per-step
+**The test phase runs unattended.** Once the owner signs the Stage 1 memo, no per-step
 check-ins with him: gates G1–G8 are the ONLY interruption points; everything between
-gates is nexus-routed E0/E1 executed without asking. ikavt receives **on-signal digests
+gates is nexus-routed E0/E1 executed without asking. the owner receives **on-signal digests
 only** (constitution §8: completed missions, blockers, pending decisions — no news = no
 message). VISION.md is the alignment reference for every tuning decision made between
 gates. This clause does not lower any gate: a trap failure, a contested verdict, or a
@@ -103,7 +103,7 @@ whitelist item still stops the line exactly where the gate sits.
       per-category breakdown; ≥80% factual target stated as pass/fail (a miss is a
       Phase 2 tuning finding, gate G5 — it does not certify Phase 1).
 - [ ] Token-envelope table (fresh vs cached, per §D) delivered in the E3 memo and
-      recurring deployment explicitly signed off by ikavt.
+      recurring deployment explicitly signed off by the owner.
 - [ ] Forge skills staged and referenced (consolidated 2026-09-04):
       `skills/engram/engram-engagement-repertoire/` (former Modes A–I + J skills),
       `skills/engram/engram-engagement-engine/` (former selector/state-accounting/
@@ -180,17 +180,17 @@ with G1.
       variety → Mode A only on high-priority gap → Mode I silence), cron-pair lock,
       trap control file (§C, §E). Dry-runnable against a stub memory adapter before
       Honcho exists.
-- [ ] 6. **G1 — Honcho install** (§F): Pi/sysadmin lane, ikavt's timing. No fleet member
+- [ ] 6. **G1 — Honcho install** (§F): sysadmin lane, owner timing. No fleet member
       executes host installs.
 - [ ] 7. **Instrumented measurement runs** (§D): bounded one-shot fires, fresh vs cached,
       producing the envelope table.
-- [ ] 8. **G3 — E3 memo to ikavt**: profile creation + two recurring crons + measured
+- [ ] 8. **G3 — approval memo to the owner**: profile creation + two recurring crons + measured
       envelope. Nothing recurs before signature.
 - [ ] 9. **Smoke run (requires G7 cleared)**: ≥10 engagement sessions + ≥4 probe
       cycles; archive-integrity diff and SIGKILL canary (§E.T0).
 - [ ] 10. **Trap tests T1–T4** (§E) via trap control file.
 - [ ] 11. **Scoring + certification**: accuracy report, skeleton-coverage report
-      (§B.7), exemplar lint, trap evidence → critic gate → nexus → ikavt.
+      (§B.7), exemplar lint, trap evidence → critic gate → router → owner.
       Precedents retained to `browser-agent:planner`.
 
 ---
@@ -300,7 +300,7 @@ Probe voice is a tested quality: curious friend, never inquisitor. Measurable ru
   draft — prompts are the tunables, skills the mechanics. Re-score a fresh sample
   after each tuning pass. Persistent failure across 3 tuning passes → gate G8.
 
-### B.6 Cold-call judge (ikavt directive, 2026-08-27)
+### B.6 Cold-call judge (the owner directive, 2026-08-27)
 
 A judge pass over Engram's **agent-initiated** messages — every cold-call across all
 engagement modes — scoring whether each feels human/organic or synthetic/forced. The
@@ -508,7 +508,7 @@ coverage is measurable as ledger state, not by reading transcripts.
      `passive_mode = true`. Sends update `last_contact_ts`, `last_mode`, and the
      rolling `mode_history`. The profile never performs this arithmetic.
 
-### C.4 Wake-transport contract (v7, ikavt directive via nexus, 2026-08-27)
+### C.4 Wake-transport contract (v7, the owner directive via nexus, 2026-08-27)
 
 Wake *ordering* (§C.2/§C.3) is fully specified; wake *transport* was not — a test
 agent booted from the portable SOUL, which deliberately knows nothing about
@@ -558,7 +558,7 @@ No numbers are asserted unmeasured. Method:
    fires/day × T_probe + consolidation runs/day × T_cons), computed on both columns.
 4. **Two-stage ask:** Stage 1 (this memo's first request) = stand up both profiles +
    the bounded measurement fires only. Stage 2 = recurring cadence, requested with the
-   measured table attached. **Nothing recurs before ikavt signs Stage 2.**
+   measured table attached. **Nothing recurs before the owner signs Stage 2.**
 
 ## E. Negative-path trap tests
 
@@ -787,7 +787,7 @@ file under `hermes/profiles/engram/test-evidence/`.
   plastic-labs/honcho). The **deriver** component is mandatory — without it messages
   store but no representations consolidate. A community Hermes-oriented self-host
   recipe exists (elkimek/honcho-self-hosted) as a starting reference.
-- Install = host-level change → **Pi's lane; timing is ikavt's call** (VISION open
+- Install = host-level change → **Pi's lane; timing is the owner's call** (VISION open
   decision 2). The fleet proposes; no fleet member executes. **UNVERIFIED:** this
   host's Docker/runtime availability for Honcho — Pi confirms at install time.
 - Steps 1–5 and the stub-adapter dry-runs proceed without Honcho; G1 blocks only
@@ -795,17 +795,17 @@ file under `hermes/profiles/engram/test-evidence/`.
 
 ## Decision gates
 
-- **G1 — Honcho install timing:** ikavt, executed by Pi. Blocks steps 7+ only.
+- **G1 — Honcho install timing:** the owner, executed by Pi. Blocks steps 7+ only.
 - **G2 — card license unresolvable:** switch to fallback card, note to nexus, no halt.
 - **G3 — E3 (whitelist §3.3):** new profiles + recurring cron burn. Two-stage memo per
-  §D.4. First-of-kind for this workstream → nexus → ikavt.
+  §D.4. First-of-kind for this workstream → nexus → the owner.
 - **G4 — any trap test fails:** halt Phase 1 immediately; fix round; critic re-gates
   before the smoke run resumes. A redaction or cap failure discovered later in
   production is the failure mode these traps exist to pre-empt.
 - **G5 — accuracy floor unreachable after Phase 2 tuning:** Honcho-suitability finding
-  → nexus → ikavt; the charter's fallback is Hindsight-only (a charter amendment,
+  → nexus → the owner; the charter's fallback is Hindsight-only (a charter amendment,
   never a quiet hybrid).
-- **G6 — git home for `fleet/engram/`:** ikavt (VISION open decision 4); recommend yes
+- **G6 — git home for `fleet/engram/`:** the owner (VISION open decision 4); recommend yes
   before the fixture corpus grows.
 - **G7 — forge skills dependency (hard block):** the Phase 1 cron pair goes live ONLY
   after forge's mechanics land and are installed (consolidated 2026-09-4):
@@ -815,7 +815,7 @@ file under `hermes/profiles/engram/test-evidence/`.
   (dream-phase, proactive-engagement), with §C.4 transport
   blocks (handle, thread ID, @mention rule) substituted with real values. Steps
   7–11 wait on this
-  gate; steps 1–5 do not. ikavt applies the staged package — install is part of the
+  gate; steps 1–5 do not. the owner applies the staged package — install is part of the
   Stage 1 E3 ask.
 - **G8 — voice gate persistent failure:** voice score still below threshold after 3
   tuning loops → finding to nexus with the defect-class histogram; the interview
@@ -834,7 +834,7 @@ file under `hermes/profiles/engram/test-evidence/`.
   100% claim-contract lint, ownership/update-mechanics tests, ground-truth comparison
   at the same ≥80% target as Honcho; (4) G7 dependency — cron pair live only after
   forge's skills + cron prompt drafts land; G8 added for persistent voice failure.
-- 2026-08-27 planner — v3 amendment per ikavt directive (via nexus): §B.6 cold-call
+- 2026-08-27 planner — v3 amendment per the owner directive (via nexus): §B.6 cold-call
   judge — delegate_task-leaf batches with ≥20% critic spot-audit calibration (never
   self-judged), binary-plus-tell verdicts (`organic`/`forced` + tell taxonomy) to
   `coldcall-judge.jsonl`, 100% sampling until per-mode stability then ≥25%, gate at
@@ -871,7 +871,7 @@ file under `hermes/profiles/engram/test-evidence/`.
   the S+sec surface note extended for `engram-gap-skeleton`. Drafted against the
   STAGED skeleton skill + amended VISION (both verified on disk, both pre-critic);
   post-critic reconcile list lives at the end of §B.7.
-- 2026-08-27 planner — v7 amendment per ikavt directive via nexus: wake-transport
+- 2026-08-27 planner — v7 amendment per the owner directive via nexus: wake-transport
   contract (new §C.4). §C.2/§C.3 specified wake ordering but never transport — a
   test agent booted from the portable SOUL (deliberately Mattermost-agnostic) would
   wake from cron with no handle, no thread, and no addressee rule; first fire would
