@@ -32,3 +32,4 @@ hermes/profiles/engram/tools/__pycache__/
 # Regenerated on every validator run — run output, not source
 hermes/profiles/engram/test-evidence/
 .worktrees/
+.extract_drafts.py
