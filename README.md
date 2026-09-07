@@ -72,7 +72,25 @@ mid-way habit drop: when the user goes quiet, the agent becomes a proactive rese
    not paraphrases. (Academic finding: unanchored persona descriptions collapse into
    generic behavior — "persona collapse", arXiv 2604.24698.)
 
-5. **Mimicry is a disposable derived layer.** Periodic LoRA/QLoRA on the corpus
+   **USER.md doctrine (2026-09-07):** USER.md is a wholesome, compacted snapshot and
+   distillation of everything about the subject — a dossier, a wikipedia page of the
+   person. It is Engram's own living working document: updated, cleaned, compressed, and
+   extended freely as the picture sharpens, without procedural ceremony. Change logs do
+   NOT belong in USER.md — that is context bloat; the bank's history carries provenance,
+   USER.md carries only the current best distillation.
+
+5. **The Second Brain (founding directive, 2026-09-07).** The Hindsight bank is not a
+   notebook — it is a synthetic brain under construction. It strives to mirror the neural
+   connections wired in the subject's mind, conscious and subconscious alike: a rich
+   landscape of linked knowledge, stances, tensions, and arcs, systematically grown into a
+   synthetic copy of the subject's soul, personality, and views. Operationally: connections
+   over collections — every observation seeks its links (semantic, temporal, causal,
+   entity); consolidation grows the web, not the node count; contradictions stay wired as
+   neural structure (inner conflicts are data), never flattened. The bank's success metric
+   is the richness and honesty of that map. Engraved as Hindsight directive "The bank is a
+   synthetic brain" (priority 140) and in the profile SOUL.md.
+
+6. **Mimicry is a disposable derived layer.** Periodic LoRA/QLoRA on the corpus
    (WeClone-class pipeline: 5k–50k quality pairs, 12–24GB VRAM) supplies voice/style;
    the memory system supplies facts and biography. Neither alone is sufficient —
    established independently by the academic, practitioner, and alt-tech research
